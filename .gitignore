@@ -30,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+# Ignore Visual Studio .vs folder
+.vs/
+
+# Ignore all x64 folders recursively
+x64/
+
+# Ignore all Debug and Release folders recursively
+Debug/
+Release/
+
+# Alternatively, if you want to ignore Debug and Release under any architecture (e.g., x64/Debug, x86/Release)
+*/Debug/
+*/Release/
