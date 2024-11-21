@@ -3,7 +3,19 @@
 #include "Session.h"
 
 std::array<Session, MAX_CLIENT> NetworkModule::m_Sessions;
-std::array<int, MAX_CLIENT>		NetworkModule::m_Client_ID_map;
+std::array<LONG64, MAX_CLIENT>		NetworkModule::m_Client_ID_map;
+
+NetworkModule::~NetworkModule() 
+{
+	if (m_NetworkStart) {
+		for (auto& t : m_tWorkers)
+			t.join();
+		m_tTest.join();
+	}
+
+	::FreeConsole();
+	::fclose(mConsole);
+}
 
 void NetworkModule::Init()
 {
@@ -17,11 +29,70 @@ void NetworkModule::Init()
 	m_hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 0); 
 	if (m_hIOCP == NULL)
 		assert(0);
+
+	::AllocConsole();
+	freopen_s(&mConsole, "CONOUT$", "w", stdout); // 표준 출력을 콘솔로 리디렉션
+	freopen_s(&mConsole, "CONIN$", "r", stdin);	// 표준 입력을 콘솔로 리디렉션
+	m_Last_connected_time = Clock::now();
+
 }
+
+void NetworkModule::WorkerThread()
+{
+
+	CompletionTask iocp_task;
+	while (m_NetworkStart) {
+		Try_Connect_Session_ToServer();
+
+		BOOL ret = GQCS(iocp_task);
+
+		if (ret == FALSE) {
+			int err = ::WSAGetLastError();
+			if (err != ERROR_IO_PENDING) {
+				PrintErrorDescription(err);
+				Disconnect_Session_FromServer(iocp_task.key_ID);
+				continue;
+			}
+		}
+
+	}
+}
+
+void NetworkModule::TestThread()
+{
+}
+
+void NetworkModule::Execute(int workerThread_num)
+{
+	m_NetworkStart = true;
+	for (int i = 0; i < workerThread_num; ++i) {
+		m_tWorkers.emplace_back(&NetworkModule::WorkerThread, this);
+	}
+	m_tTest = std::thread{ &NetworkModule::TestThread, this };
+}
+
+void NetworkModule::Connect_Session_ToServer(LONG64 ID)
+{
+	// Connect ! 
+	Session& client = m_Sessions[ID];
+	client.Init(ID);
+	bool ret = client.Connect(SERVER_IP, SERVER_PORT);
+	if (ret == false)
+		return;
+	client.CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
+	m_Last_connected_time = Clock::now();
+	std::cout << ID << " Connected\n";
+}
+
+void NetworkModule::Exit()
+{
+	m_NetworkStart = false;
+}
+
 
 bool NetworkModule::GQCS(CompletionTask& ct)
 {
-	DWORD waitTime = INFINITE;
+	DWORD waitTime = 0;
 	WSAOVERLAPPED* over{};
 	ct.success = ::GetQueuedCompletionStatus(m_hIOCP
 										  , &ct.bytes
@@ -35,24 +106,47 @@ bool NetworkModule::GQCS(CompletionTask& ct)
 
 void NetworkModule::Try_Connect_Session_ToServer()
 {
+	static int connect_time_val = 1;
+
+	// 동접 끝까지 차면 접속 끊기 
+	if (m_Active_clients_num.load() >= MAX_USER)
+		return;
+
+	// connected_client_num = session ID = session Index 이므로 범위 벗어나면 귾어야함.
+	if (m_Connected_clients_num.load() >= MAX_CLIENT)
+		return;
+
+	if (m_Active_clients_num == 0)
+		m_delay = 0;
 
 	/* Session을 Server에 Connect 시도하자 (딜레이에 따라 조정) */
-
-	m_Last_connected_time = std::chrono::high_resolution_clock::now();
-
-	int ID = m_Connected_clients_num;
-
-	// Connect ! 
-	Session& client = m_Sessions[ID];
-	client.Init(ID);
-	bool ret = client.Connect(SERVER_IP, SERVER_PORT);
-	if (ret == false)
+	int deltaT = std::chrono::duration_cast<ms>(Clock::now() - m_Last_connected_time).count();
+	if (CONNECT_DELAY > deltaT)
 		return;
-	client.CreateIOCP(m_hIOCP, ID, 0);
 
+	// 딜레이가 LIMIT 보다 커지면 접속 끊기 
+	int delay = m_delay;
+	if (delay >= LIMIT_DELAY) {
+		m_Last_connected_time = Clock::now();
+		Disconnect_Session_FromServer(m_close_ID.load());
+		return;
+	}
+	else if (delay >= LIMIT_DELAY / 2) {
+		connect_time_val = 20;
+	}
+	else {
+		connect_time_val = connect_time_val < 2 ? 1 : connect_time_val - 1;
+	}
+
+	if (connect_time_val * CONNECT_DELAY > deltaT)
+		return;
+
+
+	LONG64 ID = m_Connected_clients_num++;
+	Connect_Session_ToServer(ID);
 }
 
-void NetworkModule::Disconnect_Session_FromServer(int ID)
+void NetworkModule::Disconnect_Session_FromServer(LONG64 ID)
 {
 
 	// Session이 Connect되어있는 상태를 false로 atomic 하게 변경 
@@ -63,6 +157,47 @@ void NetworkModule::Disconnect_Session_FromServer(int ID)
 
 		m_Sessions[ID].Disconnect();
 		m_Active_clients_num--;
-		
+		m_close_ID++;
+	}
+}
+
+
+void NetworkModule::PrintErrorDescription(int errorCode) {
+	static std::unordered_map<int, std::string> errorDescriptions = {
+		{258, "WAIT_TIMEOUT: 작업이 지정된 시간 내에 완료되지 않았습니다."},
+		{10004, "WSAEINTR: 차단된 함수 호출이 취소되었습니다."},
+		{10009, "WSAEBADF: 잘못된 파일 핸들입니다."},
+		{10013, "WSAEACCES: 요청한 작업이 허용되지 않습니다."},
+		{10014, "WSAEFAULT: 잘못된 주소가 사용되었습니다."},
+		{10022, "WSAEINVAL: 잘못된 매개변수가 전달되었습니다."},
+		{10024, "WSAEMFILE: 열 수 있는 소켓의 최대 개수를 초과했습니다."},
+		{10035, "WSAEWOULDBLOCK: 작업이 비동기로 실행 중이며 완료되지 않았습니다."},
+		{10036, "WSAEINPROGRESS: 현재 차단된 작업이 진행 중입니다."},
+		{10037, "WSAEALREADY: 이미 요청이 진행 중입니다."},
+		{10038, "WSAENOTSOCK: 소켓이 아닌 핸들이 전달되었습니다."},
+		{10048, "WSAEADDRINUSE: 주소가 이미 사용 중입니다."},
+		{10049, "WSAEADDRNOTAVAIL: 요청한 주소를 사용할 수 없습니다."},
+		{10050, "WSAENETDOWN: 네트워크가 다운되었습니다."},
+		{10051, "WSAENETUNREACH: 네트워크에 접근할 수 없습니다."},
+		{10052, "WSAENETRESET: 연결이 네트워크에서 리셋되었습니다."},
+		{10053, "WSAECONNABORTED: 소프트웨어로 인해 연결이 중단되었습니다."},
+		{10054, "WSAECONNRESET: 원격 호스트에 의해 연결이 강제로 리셋되었습니다."},
+		{10055, "WSAENOBUFS: 버퍼 공간이 부족합니다."},
+		{10056, "WSAEISCONN: 소켓이 이미 연결된 상태입니다."},
+		{10057, "WSAENOTCONN: 소켓이 연결되지 않았습니다."},
+		{10058, "WSAESHUTDOWN: 소켓이 종료되어 데이터를 보낼 수 없습니다."},
+		{10060, "WSAETIMEDOUT: 연결 시도가 시간 초과되었습니다."},
+		{10061, "WSAECONNREFUSED: 연결 시도가 거부되었습니다."},
+		{10064, "WSAEHOSTDOWN: 호스트가 다운되었습니다."},
+		{10065, "WSAEHOSTUNREACH: 호스트에 접근할 수 없습니다."},
+		{10067, "WSAEPROCLIM: 프로세스가 너무 많습니다."}
+	};
+
+	auto it = errorDescriptions.find(errorCode);
+	if (it != errorDescriptions.end()) {
+		std::cout << "에러 코드: " << errorCode << ", 설명: " << it->second << std::endl;
+	}
+	else {
+		std::cout << "에러 코드: " << errorCode << ", 설명: 알 수 없는 에러입니다." << std::endl;
 	}
 }

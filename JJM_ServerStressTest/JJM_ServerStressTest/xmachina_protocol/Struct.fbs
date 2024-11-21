@@ -1,0 +1,45 @@
+
+// +---------------
+// Struct.fbs
+// ---------------+
+
+include "Enum.fbs";
+include "Transform.fbs";
+
+namespace FBProtocol;
+
+// +------------------------
+//	    Player STRUCT  
+// ------------------------+
+table Player {
+  id			: uint;
+  name			: string;
+  hp			: float;
+  trans			: Transform;
+  spine_look	: Vector3;
+}
+
+// +------------------------
+//	    Phero STRUCT  
+// ------------------------+
+table Phero {
+	id			: uint;
+	level		: ubyte;
+	offset_dist : Position_Vec2;
+}
+
+
+// +------------------------
+//	    Monster STRUCT 
+// ------------------------+
+table Monster{
+	id					:  uint; 
+	type				:  MONSTER_TYPE;		// UINT8
+	bt_type				:  MONSTER_BT_TYPE;
+	pos_2				:  Position_Vec2;
+	rot_y				:  float;				// y
+
+	target_player_id	: int;
+	target_monster_id	: int;
+
+}

@@ -2,11 +2,25 @@
 #include "Session.h"
 #include "ExOverlapped.h"
 
+Session::Session()
+{
+}
+
+Session::~Session()
+{
+	if (m_ExOver)
+	{
+		delete m_ExOver;
+		m_ExOver = nullptr;
+	}
+}
+
 void Session::Init(int ID)
 {
 	m_ID			= ID;
 	m_IsConnected	= false;
 	m_Socket        = ::WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
+	m_ExOver        = new ExOverlapped;
 	m_ExOver->Clear();
 
 }

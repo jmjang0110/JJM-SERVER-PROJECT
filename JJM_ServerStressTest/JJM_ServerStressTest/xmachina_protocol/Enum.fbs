@@ -1,0 +1,124 @@
+
+// +------------
+// Enum.fbs
+// ------------+
+
+namespace FBProtocol;
+
+enum OBJECT_TYPE : ubyte {
+  NONE,
+  PLAYER,
+  MONSTER,
+  STRUCTURE
+}
+
+
+
+// +------------------------
+//		 MONSTER_TYPE 
+// ------------------------+
+enum MONSTER_TYPE : ubyte {
+	NONE,
+	ADVANCED_COMBAT_DROIR_5,
+	ANGLEROX,
+	ARACK,
+	ARANOBOT,
+	CERATOFEROX,
+	GOBBLER,
+	LIGHTBIPEDMECH,
+	MININGMECH,
+	ONYSCIDUS,
+	URSACETUS,
+	RAPAX,
+	DEUS_PHASE_1,
+	DEUS_PHASE_2,
+	END
+
+}
+
+// +------------------------
+//		 MONSTER_BT_TYPE 
+// ------------------------+
+enum MONSTER_BT_TYPE : ubyte {
+	NONE,
+	IDLE,
+	DEATH,
+	ATTACK,
+	GETHIT,
+	MOVE_TO_TARGET,
+	MOVE_TO_PATH,
+	MOVE_TO_MIND_TARGET,
+	PATROL,
+
+	CHANGE_BT,
+
+	END
+}
+
+
+
+// +------------------------
+//    PLAYER MOTION STATE
+// ------------------------+
+enum PLAYER_MOTION_STATE_TYPE : ubyte {
+	NONE,
+	STAND,
+	SIT,
+	WALK,
+	RUN,
+	SPRINT,
+	END
+}
+
+
+// +------------------------
+//    PLAYER MOTION STATE
+// ------------------------+
+enum PLAYER_STATE_TYPE : ubyte {
+	NONE,
+	DEACTIVE,
+	ACTIVE,
+	DEAD,
+	END,
+}
+
+
+// +------------------------
+//      SKILL TYPE
+// ------------------------+
+enum PLAYER_SKILL_TYPE : ubyte {
+	NONE,
+	// X : Denied 
+	IMPOSSIBLE,
+	
+	// O : permit
+	CLOACKING,	
+	IR_DETECTOR,
+	MIND_CONTROL,
+	SHIELD,
+	END
+}
+
+// +------------------------
+//      ITEM TYPE
+// ------------------------+
+enum ITEM_TYPE : ubyte{
+	NONE,
+	STATIC_ITEM,
+	DYNAMIC_ITEM,
+
+	STATIC_ITEM_CRATE,
+
+	WEAPON_H_LOOK,
+	WEAPON_DBMS,
+	WEAPON_STUART,
+	WEAPON_DESCRIPTOR,
+	WEAPON_T_12,
+	WEAPON_PIPELINE,
+	WEAPON_BURNOUT,
+	WEAPON_DIRECT_DRAIN,
+	WEAPON_MINE_LAUNCHER,
+	WEAPON_SKYLINE,
+	WEAPON_AIR_STRIKE,
+	
+}

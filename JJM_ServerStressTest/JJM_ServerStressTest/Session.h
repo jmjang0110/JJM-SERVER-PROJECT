@@ -18,9 +18,12 @@ private:
 public:
 	std::atomic<bool>	m_IsConnected{};
 	SESSION_STATE		m_State = SESSION_STATE::FREE;
-	TimePoint           m_MoveTime{}; // 시간 간격을 두고 move packet 전송
+	TimeStamp           m_MoveTime{}; // 시간 간격을 두고 move packet 전송
 
 public:
+	Session();
+	~Session();
+
 	void Init(int ID);
 
 	// WSA 

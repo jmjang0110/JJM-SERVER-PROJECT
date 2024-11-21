@@ -7,7 +7,7 @@ private:
 	static T* m_Instance;
 
 public:
-	virtual ~Singleton() { Destroy(); };
+	virtual ~Singleton() { };
 
 public:
 	static T* GetInstance() {

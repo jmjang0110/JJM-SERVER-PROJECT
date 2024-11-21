@@ -12,7 +12,7 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="XMachina_Protocol">
+    <Filter Include="xmachina_protocol">
       <UniqueIdentifier>{da5cf5c4-9a5a-41b3-a52e-0cf02abd6400}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -40,6 +40,48 @@
     </ClInclude>
     <ClInclude Include="ExOverlapped.h">
       <Filter>source file</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Player_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBProtocol_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\Struct_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\Transform_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\Enum_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Bullet_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Chat_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Custom_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Enemy_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Enter_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Item_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_LogIn_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_NetworkLatency_generated.h">
+      <Filter>xmachina_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="xmachina_protocol\FBP_Phero_generated.h">
+      <Filter>xmachina_protocol</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -80,5 +122,52 @@
     <Image Include="JJM_ServerStressTest.ico">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xmachina_protocol\FBP_Player.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBProtocol.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\GenFlatBuffersHeader.bat">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\Struct.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\Transform.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\Enum.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Bullet.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Chat.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Custom.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Enemy.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Enter.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Item.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_LogIn.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_NetworkLatency.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
+    <None Include="xmachina_protocol\FBP_Phero.fbs">
+      <Filter>xmachina_protocol</Filter>
+    </None>
   </ItemGroup>
 </Project>

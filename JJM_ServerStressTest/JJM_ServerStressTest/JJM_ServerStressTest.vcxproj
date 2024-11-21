@@ -143,6 +143,20 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Win32RenderMgr.h" />
+    <ClInclude Include="xmachina_protocol\Enum_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBProtocol_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Bullet_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Chat_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Custom_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Enemy_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Enter_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Item_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_LogIn_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_NetworkLatency_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Phero_generated.h" />
+    <ClInclude Include="xmachina_protocol\FBP_Player_generated.h" />
+    <ClInclude Include="xmachina_protocol\Struct_generated.h" />
+    <ClInclude Include="xmachina_protocol\Transform_generated.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ExOverlapped.cpp" />
@@ -165,6 +179,23 @@
   <ItemGroup>
     <Image Include="JJM_ServerStressTest.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xmachina_protocol\Enum.fbs" />
+    <None Include="xmachina_protocol\FBProtocol.fbs" />
+    <None Include="xmachina_protocol\FBP_Bullet.fbs" />
+    <None Include="xmachina_protocol\FBP_Chat.fbs" />
+    <None Include="xmachina_protocol\FBP_Custom.fbs" />
+    <None Include="xmachina_protocol\FBP_Enemy.fbs" />
+    <None Include="xmachina_protocol\FBP_Enter.fbs" />
+    <None Include="xmachina_protocol\FBP_Item.fbs" />
+    <None Include="xmachina_protocol\FBP_LogIn.fbs" />
+    <None Include="xmachina_protocol\FBP_NetworkLatency.fbs" />
+    <None Include="xmachina_protocol\FBP_Phero.fbs" />
+    <None Include="xmachina_protocol\FBP_Player.fbs" />
+    <None Include="xmachina_protocol\GenFlatBuffersHeader.bat" />
+    <None Include="xmachina_protocol\Struct.fbs" />
+    <None Include="xmachina_protocol\Transform.fbs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

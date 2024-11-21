@@ -1,0 +1,134 @@
+
+// +------------------------
+//		Protocol.fbs
+// ------------------------+
+
+
+include "Enum.fbs";
+include "Struct.fbs";
+include "Transform.fbs";
+
+
+include "FBP_Bullet.fbs";
+include "FBP_Chat.fbs";
+include "FBP_Enemy.fbs";
+include "FBP_Enter.fbs";
+include "FBP_Item.fbs";
+include "FBP_LogIn.fbs";
+include "FBP_NetworkLatency.fbs";
+include "FBP_Phero.fbs";
+include "FBP_Player.fbs";
+include "FBP_Custom.fbs";
+
+namespace FBProtocol;
+
+enum FBsProtocolID : ubyte {
+	None,
+
+	CPkt_LogIn,          
+	SPkt_LogIn,   
+
+	CPkt_SignUp,
+	SPkt_SignUp,
+	
+	CPkt_Chat,             
+	SPkt_Chat,       
+	
+	CPkt_NetworkLatency,   
+	SPkt_NetworkLatency, 
+	
+	CPkt_EnterLobby,
+	SPkt_EnterLobby,
+
+	CPkt_PlayGame,
+	SPkt_PlayGame,
+
+	CPkt_EnterGame,        
+	SPkt_EnterGame, 
+
+	CPkt_Custom,
+	SPkt_Custom,
+	
+    /// +-----------------------------------------------------------------------
+    ///  PLAYER PACKET HEADER PROTOCOL TYPE
+    /// -----------------------------------------------------------------------+
+	CPkt_NewPlayer,           
+	SPkt_NewPlayer, 
+	
+	CPkt_RemovePlayer,        
+	SPkt_RemovePlayer,  
+	
+	CPkt_PlayerOnSkill,       
+	SPkt_PlayerOnSkill,  
+	
+	CPkt_Player_Transform,    
+	SPkt_Player_Transform, 
+	
+	CPkt_Player_Animation,    
+	SPkt_Player_Animation, 
+	
+	CPkt_Player_Weapon,       
+	SPkt_Player_Weapon,   
+	
+	CPkt_Player_AimRotation,  
+	SPkt_Player_AimRotation,  
+
+	CPkt_Player_State,        
+	SPkt_Player_State,
+	
+	
+    /// +-----------------------------------------------------------------------
+    ///  MONSTER PACKET HEADER PROTOCOL TYPE
+    /// -----------------------------------------------------------------------+
+	CPkt_NewMonster,      
+	SPkt_NewMonster,      
+
+	CPkt_DeadMonster,    
+	SPkt_DeadMonster,    
+
+	CPkt_RemoveMonster,   
+	SPkt_RemoveMonster,   
+
+	CPkt_Monster_Transform,
+	SPkt_Monster_Transform,
+
+	CPkt_Monster_HP,      
+	SPkt_Monster_HP,      
+
+	CPkt_Monster_State,  
+	SPkt_Monster_State, 
+	
+	CPkt_Monster_Target, 
+	SPkt_Monster_Target, 
+	
+    /// +-----------------------------------------------------------------------
+    ///  PHERO PACKET HEADER PROTOCOL TYPE
+    /// -----------------------------------------------------------------------+
+	CPkt_GetPhero, 
+	SPkt_GetPhero, 
+	
+    /// +-----------------------------------------------------------------------
+    ///  BULLET PACKET HEADER PROTOCOL TYPE
+    /// -----------------------------------------------------------------------+
+	CPkt_Bullet_OnShoot,    
+	SPkt_Bullet_OnShoot,    
+	
+	CPkt_Bullet_OnHitEnemy,   
+	SPkt_Bullet_OnHitEnemy,   
+	
+	CPkt_Bullet_OnHitExpEnemy,
+	SPkt_Bullet_OnHitExpEnemy,
+	
+	CPkt_Bullet_OnCollision, 
+	SPkt_Bullet_OnCollision, 
+
+	
+    /// +-----------------------------------------------------------------------
+    ///  ITEM PACKET HEADER PROTOCOL TYPE
+    /// -----------------------------------------------------------------------+
+	CPkt_Item_Interact, 
+	SPkt_Item_Interact,
+	
+	CPkt_Item_ThrowAway,
+	SPkt_Item_ThrowAway,
+}

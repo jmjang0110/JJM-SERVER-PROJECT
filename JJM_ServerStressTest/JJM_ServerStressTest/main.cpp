@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "Framework.h"
+#include "NetworkModule.h"
 
 int APIENTRY wWinMain(_In_      HINSTANCE hInstance,
                       _In_opt_  HINSTANCE hPrevInstance,
@@ -14,9 +15,12 @@ int APIENTRY wWinMain(_In_      HINSTANCE hInstance,
         return -1; 
     }
 
+    NetworkModule::GetInstance()->Init();
+    NetworkModule::GetInstance()->Execute(4);
     int result = Framework::GetInstance()->Loop();
-    Framework::GetInstance()->Destroy();
 
+    Framework::GetInstance()->Destroy();
+    NetworkModule::GetInstance()->Destroy();
     return result;
 }
 

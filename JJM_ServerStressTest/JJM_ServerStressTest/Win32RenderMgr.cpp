@@ -108,7 +108,7 @@ void Win32RenderMgr::DrawWText(const POINT& position, const std::wstring& text, 
 		CLIP_DEFAULT_PRECIS,         // Clipping precision
 		DEFAULT_QUALITY,             // Output quality
 		DEFAULT_PITCH | FF_DONTCARE, // Pitch and family
-		L"Arial"                     // Font name (change as needed)
+		L"Times New Roman"                     // Font name (change as needed)
 	);
 
 	HFONT hPrevFont = (HFONT)SelectObject(mBackHDC, hFont);

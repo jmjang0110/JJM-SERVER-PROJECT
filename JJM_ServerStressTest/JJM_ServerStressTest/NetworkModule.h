@@ -25,31 +25,49 @@ struct CompletionTask
 };
 
 class Session;
-class NetworkModule
+class NetworkModule : public Singleton<NetworkModule>
 {
+private:
+	FILE*						mConsole{};
 private:
 	HANDLE						m_hIOCP{};
 
-	std::atomic<int>			m_Connected_clients_num{};
-	std::atomic<int>			m_Active_clients_num{};
-	TimePoint					m_Last_connected_time{};
+	std::atomic<LONG64>			m_Connected_clients_num{};
+	std::atomic<LONG64>			m_Active_clients_num{};
+	std::atomic<LONG64>			m_close_ID{};
 
-	std::vector<std::thread*>	m_tWorkers{};
-	std::thread					m_tTest{};
+	TimeStamp					m_Last_connected_time{};
+
+	std::vector<std::thread>	m_tWorkers{}; // worker thread
+	std::thread					m_tTest{};	  // stress test thread
+	bool						m_NetworkStart = false;
+
+	int							m_delay{};
 
 public:
-	static std::array<int, MAX_CLIENT>		m_Client_ID_map;
+	static std::array<LONG64, MAX_CLIENT>		m_Client_ID_map;
 	static std::array<Session, MAX_CLIENT>	m_Sessions;
 
 public:
-	void Init();
+	NetworkModule() {};
+	~NetworkModule();
 
+private:
+	void WorkerThread();
+	void TestThread();
 	// Get Queued Completion Status Task info
-	bool GQCS(CompletionTask& completionstatus);
-
+	bool GQCS( /*IN-OUT*/ CompletionTask& completionstatus);
 	void Try_Connect_Session_ToServer();
-	void Disconnect_Session_FromServer(int ID);
+	void Connect_Session_ToServer(LONG64 ID);
+	void Disconnect_Session_FromServer(LONG64 ID);
 
+public:
+	void Init();
+	void Execute(int workerThread_num);
+	int  GetConnectedClientsNum() { return m_Connected_clients_num.load(); }
+
+	void Exit();
+	void PrintErrorDescription(int errorCode);
 
 };
 

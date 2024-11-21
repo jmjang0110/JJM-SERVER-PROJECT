@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Framework.h"
 #include "Win32RenderMgr.h"
-
+#include "NetworkModule.h"
 
 Framework::Framework() 
 {
@@ -17,17 +17,17 @@ bool Framework::Init(HINSTANCE& hInstance, const LONG& width, const LONG& height
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WndProc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
-    wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_JJMSERVERSTRESSTEST));
-    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.style         = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc   = WndProc;
+    wcex.cbClsExtra    = 0;
+    wcex.cbWndExtra    = 0;
+    wcex.hInstance     = hInstance;
+    wcex.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_JJMSERVERSTRESSTEST));
+    wcex.hCursor       = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wcex.lpszMenuName = nullptr;
+    wcex.lpszMenuName  = nullptr;
     wcex.lpszClassName = L"JJM Server Stress Test";
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.hIconSm       = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
     RegisterClassExW(&wcex);
 
     m_hWnd = CreateWindowW(L"JJM Server Stress Test", L"JJM Server Stress Test", WS_OVERLAPPEDWINDOW,
@@ -79,12 +79,13 @@ void Framework::LoopLogic()
 {
     Win32RenderMgr::GetInstance()->Render_Prepare(m_Resolution[0], m_Resolution[1]);
 
-    static int time = 0; time++;
-    std::wstring timew = std::to_wstring(time);
+    int clientCnt = NetworkModule::GetInstance()->GetConnectedClientsNum();
+    std::wstring timew = std::to_wstring(clientCnt);
     Win32RenderMgr::GetInstance()->DrawFilledRectangle(POINT { 10, 50 }, 50, 50, RGB(0, 0, 0)); // 내부 채우기
-    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 0 }, L"Delay : " + timew, 30);
     Win32RenderMgr::GetInstance()->DrawPoint(POINT{ 30, 70 }, 4);
 
+    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 5 }, L"Delay : " + timew, 30);
+   
     Win32RenderMgr::GetInstance()->Render_Present(m_Resolution[0], m_Resolution[1]);
 
 }
@@ -131,6 +132,16 @@ LRESULT Framework::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         }
     }
     break;
+    case WM_KEYDOWN:
+        if (wParam == VK_ESCAPE) // Check if ESC key is pressed
+        {
+            NetworkModule::GetInstance()->Exit();
+            Framework::GetInstance()->Destroy();
+            NetworkModule::GetInstance()->Destroy();
+            DestroyWindow(hWnd);
+            return 0;
+        }
+        break;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;

@@ -40,4 +40,6 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
-typedef std::chrono::high_resolution_clock::time_point TimePoint;
+typedef std::chrono::high_resolution_clock::time_point TimeStamp;
+typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::milliseconds ms;
