@@ -1,5 +1,8 @@
 #pragma once
 
+constexpr int ROOM_WIDTH = 200;
+constexpr int ROOM_HEIGHT = 200;
+
 typedef DirectX::XMFLOAT2 vec2;
 typedef DirectX::XMFLOAT3 vec3;
 typedef DirectX::XMFLOAT4 vec4;

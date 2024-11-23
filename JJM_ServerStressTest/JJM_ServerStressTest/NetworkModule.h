@@ -3,7 +3,7 @@
 // CLIENT, ROOM 
 const static  UINT64 MAX_USER            = 2000;
 const static  UINT64 MAX_CLIENT          = MAX_USER * 2;
-const static  UINT64 MAX_CLIENT_PER_ROOM = 4; // ROOM당 4명으로 수용
+const static  UINT64 MAX_CLIENT_PER_ROOM = 500; // ROOM당 4명으로 수용
 const static  UINT64 MAX_ROOM            = MAX_CLIENT / 4; // 서버 전체 ROOM개수
 
 // SERVER IP , PORT 
@@ -46,7 +46,7 @@ private:
 
 public:
 	static std::array<LONG64, MAX_CLIENT>		m_Client_ID_map;
-	static std::array<Session, MAX_CLIENT>	m_Sessions;
+	static std::array<Session, MAX_CLIENT>		m_Sessions;
 
 public:
 	NetworkModule() {};
@@ -60,6 +60,7 @@ private:
 	void Try_Connect_Session_ToServer();
 	void Connect_Session_ToServer(LONG64 ID);
 	void Disconnect_Session_FromServer(LONG64 ID);
+	void Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* over);
 
 public:
 	void Init();
@@ -68,6 +69,7 @@ public:
 
 	void Exit();
 	void PrintErrorDescription(int errorCode);
+	void Draw_Sessions();
 
 };
 

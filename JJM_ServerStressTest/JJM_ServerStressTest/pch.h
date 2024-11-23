@@ -43,3 +43,5 @@
 typedef std::chrono::high_resolution_clock::time_point TimeStamp;
 typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds ms;
+
+thread_local int thread_id;

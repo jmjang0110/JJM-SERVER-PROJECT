@@ -10,7 +10,7 @@ int APIENTRY wWinMain(_In_      HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    if (!Framework::GetInstance()->Init(hInstance, 800, 600)) {  
+    if (!Framework::GetInstance()->Init(hInstance, 1200, 600)) {  
         Framework::GetInstance()->Destroy();
         return -1; 
     }

@@ -130,9 +130,6 @@
     <None Include="xmachina_protocol\FBProtocol.fbs">
       <Filter>xmachina_protocol</Filter>
     </None>
-    <None Include="xmachina_protocol\GenFlatBuffersHeader.bat">
-      <Filter>xmachina_protocol</Filter>
-    </None>
     <None Include="xmachina_protocol\Struct.fbs">
       <Filter>xmachina_protocol</Filter>
     </None>

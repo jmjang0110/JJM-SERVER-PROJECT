@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "NetworkModule.h"
 #include "Session.h"
+#include "ExOverlapped.h"
+#include "Win32RenderMgr.h"
+
 
 std::array<Session, MAX_CLIENT> NetworkModule::m_Sessions;
 std::array<LONG64, MAX_CLIENT>		NetworkModule::m_Client_ID_map;
@@ -42,10 +45,7 @@ void NetworkModule::WorkerThread()
 
 	CompletionTask iocp_task;
 	while (m_NetworkStart) {
-		Try_Connect_Session_ToServer();
-
 		BOOL ret = GQCS(iocp_task);
-
 		if (ret == FALSE) {
 			int err = ::WSAGetLastError();
 			if (err != ERROR_IO_PENDING) {
@@ -54,12 +54,15 @@ void NetworkModule::WorkerThread()
 				continue;
 			}
 		}
-
+		Process_CompletionTask(iocp_task.key_ID, static_cast<int>(iocp_task.bytes), iocp_task.exOver);
 	}
 }
 
 void NetworkModule::TestThread()
 {
+	while (m_NetworkStart) {
+		Try_Connect_Session_ToServer();
+	}
 }
 
 void NetworkModule::Execute(int workerThread_num)
@@ -74,14 +77,24 @@ void NetworkModule::Execute(int workerThread_num)
 void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 {
 	// Connect ! 
-	Session& client = m_Sessions[ID];
-	client.Init(ID);
-	bool ret = client.Connect(SERVER_IP, SERVER_PORT);
-	if (ret == false)
+	;
+	m_Sessions[ID].Init(ID);
+	bool ret = m_Sessions[ID].Connect(SERVER_IP, SERVER_PORT);
+	if (ret == false) {
+		m_Connected_clients_num--;
 		return;
-	client.CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
+	}
+	m_Connected_clients_num++;
+	m_Sessions[ID].CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
 	m_Last_connected_time = Clock::now();
 	std::cout << ID << " Connected\n";
+
+	m_Sessions[ID].Send_CPkt_LogIn(std::to_string(ID), "1234");
+	m_Sessions[ID].DoRecv();
+
+	if (ID % MAX_CLIENT_PER_ROOM == 0)
+		m_Sessions[ID].Send_CPkt_PlayGame();
+
 }
 
 void NetworkModule::Exit()
@@ -89,10 +102,27 @@ void NetworkModule::Exit()
 	m_NetworkStart = false;
 }
 
+void NetworkModule::Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* over)
+{
+	switch (over->m_IOtype)
+	{
+	case IO_TYPE::READ:
+	{
+		if (m_Sessions[id].OnRecv(bytes, over) == false)
+			Disconnect_Session_FromServer(id);
+	}
+	case IO_TYPE::WRITE:
+	{
+	}
+	default:
+		break;
+	}
+}
+
 
 bool NetworkModule::GQCS(CompletionTask& ct)
 {
-	DWORD waitTime = 0;
+	DWORD waitTime = INFINITE;
 	WSAOVERLAPPED* over{};
 	ct.success = ::GetQueuedCompletionStatus(m_hIOCP
 										  , &ct.bytes
@@ -121,8 +151,9 @@ void NetworkModule::Try_Connect_Session_ToServer()
 
 	/* Session을 Server에 Connect 시도하자 (딜레이에 따라 조정) */
 	int deltaT = std::chrono::duration_cast<ms>(Clock::now() - m_Last_connected_time).count();
-	if (CONNECT_DELAY > deltaT)
+	if (CONNECT_DELAY > deltaT) {
 		return;
+	}
 
 	// 딜레이가 LIMIT 보다 커지면 접속 끊기 
 	int delay = m_delay;
@@ -142,7 +173,7 @@ void NetworkModule::Try_Connect_Session_ToServer()
 		return;
 
 
-	LONG64 ID = m_Connected_clients_num++;
+	LONG64 ID = m_Connected_clients_num;
 	Connect_Session_ToServer(ID);
 }
 
@@ -199,5 +230,47 @@ void NetworkModule::PrintErrorDescription(int errorCode) {
 	}
 	else {
 		std::cout << "에러 코드: " << errorCode << ", 설명: 알 수 없는 에러입니다." << std::endl;
+	}
+}
+
+void NetworkModule::Draw_Sessions()
+{
+	const int cols = 5;                      // 방의 열 개수
+	const int rows = 2;                      // 방의 행 개수
+	const int roomWidth = ROOM_WIDTH;               // 각 방의 너비
+	const int roomHeight = ROOM_HEIGHT;              // 각 방의 높이
+	const int margin = 20;                   // 방 간 간격
+	const int startX = 50;                   // 방 시작 X 좌표
+	const int startY = 100;                  // 방 시작 Y 좌표
+	const int maxClientsPerRoom = MAX_CLIENT_PER_ROOM; // 방당 최대 클라이언트 수
+
+	for (LONG64 clientID = 0; clientID < m_Connected_clients_num; ++clientID)
+	{
+		// 방 번호 계산 (0부터 시작)
+		int roomIndex = clientID / maxClientsPerRoom;
+
+		// 방이 존재하지 않는 경우 무시
+		if (roomIndex >= (cols * rows)) {
+			continue;
+		}
+
+		// 방의 행과 열 계산
+		int roomRow = roomIndex / cols;
+		int roomCol = roomIndex % cols;
+
+		// 방의 좌측 상단 좌표
+		int roomX = startX + roomCol * (roomWidth + margin);
+		int roomY = startY + roomRow * (roomHeight + margin);
+
+		// 방 안에서의 랜덤 위치 지정 (점들이 겹치지 않도록)
+		int dotX = roomX + (rand() % (roomWidth - 10)) + 5; // 5~(roomWidth-5)
+		int dotY = roomY + (rand() % (roomHeight - 10)) + 5; // 5~(roomHeight-5)
+
+		// 점 그리기
+		Win32RenderMgr::GetInstance()->DrawFilledRectangle(
+			POINT{ dotX, dotY },
+			1, 1, // 점의 크기
+			RGB(255, 100, 0) 
+		);
 	}
 }
