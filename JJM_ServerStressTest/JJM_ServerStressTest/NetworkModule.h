@@ -1,7 +1,7 @@
 #pragma once
 
 // CLIENT, ROOM 
-const static  LONG64 MAX_USER            = 2000;
+const static  LONG64 MAX_USER            = 4000;
 const static  LONG64 MAX_CLIENT          = MAX_USER * 2;
 const static  LONG64 MAX_CLIENT_PER_ROOM = 500; // ROOM당 4명으로 수용
 const static  LONG64 MAX_ROOM            = MAX_CLIENT / 4; // 서버 전체 ROOM개수

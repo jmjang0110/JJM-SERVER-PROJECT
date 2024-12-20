@@ -103,7 +103,6 @@ void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 	}
 	m_Connected_clients_num++;
 	m_Active_clients_num++;
-
 	m_Sessions[ID].CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
 	m_Last_connected_time = Clock::now();
 
@@ -167,7 +166,7 @@ void NetworkModule::Try_Connect_Session_ToServer()
 	static int connect_time_val = 1;
 
 	// m_Active_clients_num 이 UINT64 여서 -1  일때 MAX_USER 보다 크다고 처리됐었ㅇ므..
-	// 자료형을 같이 해야했음
+
 	// 동접 끝까지 차면 접속 끊기 
 	LONG64 activeclientsNum = m_Active_clients_num.load();
 	if (activeclientsNum >= MAX_USER)
