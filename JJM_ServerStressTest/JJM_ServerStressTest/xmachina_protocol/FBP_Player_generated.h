@@ -340,7 +340,8 @@ struct CPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
     VT_TRANS = 12,
     VT_SPINE_LOOK = 14,
     VT_ANIMPARAM_H = 16,
-    VT_ANIMPARAM_V = 18
+    VT_ANIMPARAM_V = 18,
+    VT_MOVE_TIME = 20
   };
   FBProtocol::PLAYER_MOTION_STATE_TYPE move_state() const {
     return static_cast<FBProtocol::PLAYER_MOTION_STATE_TYPE>(GetField<uint8_t>(VT_MOVE_STATE, 0));
@@ -366,6 +367,9 @@ struct CPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   float animparam_v() const {
     return GetField<float>(VT_ANIMPARAM_V, 0.0f);
   }
+  int64_t move_time() const {
+    return GetField<int64_t>(VT_MOVE_TIME, 0);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MOVE_STATE, 1) &&
@@ -379,6 +383,7 @@ struct CPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
            verifier.VerifyTable(spine_look()) &&
            VerifyField<float>(verifier, VT_ANIMPARAM_H, 4) &&
            VerifyField<float>(verifier, VT_ANIMPARAM_V, 4) &&
+           VerifyField<int64_t>(verifier, VT_MOVE_TIME, 8) &&
            verifier.EndTable();
   }
 };
@@ -411,6 +416,9 @@ struct CPkt_Player_TransformBuilder {
   void add_animparam_v(float animparam_v) {
     fbb_.AddElement<float>(CPkt_Player_Transform::VT_ANIMPARAM_V, animparam_v, 0.0f);
   }
+  void add_move_time(int64_t move_time) {
+    fbb_.AddElement<int64_t>(CPkt_Player_Transform::VT_MOVE_TIME, move_time, 0);
+  }
   explicit CPkt_Player_TransformBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -431,8 +439,10 @@ inline ::flatbuffers::Offset<CPkt_Player_Transform> CreateCPkt_Player_Transform(
     ::flatbuffers::Offset<FBProtocol::Transform> trans = 0,
     ::flatbuffers::Offset<FBProtocol::Vector3> spine_look = 0,
     float animparam_h = 0.0f,
-    float animparam_v = 0.0f) {
+    float animparam_v = 0.0f,
+    int64_t move_time = 0) {
   CPkt_Player_TransformBuilder builder_(_fbb);
+  builder_.add_move_time(move_time);
   builder_.add_latency(latency);
   builder_.add_animparam_v(animparam_v);
   builder_.add_animparam_h(animparam_h);
@@ -455,7 +465,8 @@ struct SPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
     VT_TRANS = 14,
     VT_SPINE_LOOK = 16,
     VT_ANIMPARAM_H = 18,
-    VT_ANIMPARAM_V = 20
+    VT_ANIMPARAM_V = 20,
+    VT_MOVE_TIME = 22
   };
   uint32_t player_id() const {
     return GetField<uint32_t>(VT_PLAYER_ID, 0);
@@ -484,6 +495,9 @@ struct SPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   float animparam_v() const {
     return GetField<float>(VT_ANIMPARAM_V, 0.0f);
   }
+  int64_t move_time() const {
+    return GetField<int64_t>(VT_MOVE_TIME, 0);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_PLAYER_ID, 4) &&
@@ -498,6 +512,7 @@ struct SPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
            verifier.VerifyTable(spine_look()) &&
            VerifyField<float>(verifier, VT_ANIMPARAM_H, 4) &&
            VerifyField<float>(verifier, VT_ANIMPARAM_V, 4) &&
+           VerifyField<int64_t>(verifier, VT_MOVE_TIME, 8) &&
            verifier.EndTable();
   }
 };
@@ -533,6 +548,9 @@ struct SPkt_Player_TransformBuilder {
   void add_animparam_v(float animparam_v) {
     fbb_.AddElement<float>(SPkt_Player_Transform::VT_ANIMPARAM_V, animparam_v, 0.0f);
   }
+  void add_move_time(int64_t move_time) {
+    fbb_.AddElement<int64_t>(SPkt_Player_Transform::VT_MOVE_TIME, move_time, 0);
+  }
   explicit SPkt_Player_TransformBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -554,8 +572,10 @@ inline ::flatbuffers::Offset<SPkt_Player_Transform> CreateSPkt_Player_Transform(
     ::flatbuffers::Offset<FBProtocol::Transform> trans = 0,
     ::flatbuffers::Offset<FBProtocol::Vector3> spine_look = 0,
     float animparam_h = 0.0f,
-    float animparam_v = 0.0f) {
+    float animparam_v = 0.0f,
+    int64_t move_time = 0) {
   SPkt_Player_TransformBuilder builder_(_fbb);
+  builder_.add_move_time(move_time);
   builder_.add_latency(latency);
   builder_.add_animparam_v(animparam_v);
   builder_.add_animparam_h(animparam_h);

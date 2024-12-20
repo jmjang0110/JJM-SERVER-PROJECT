@@ -3,7 +3,8 @@
 
 void ExOverlapped::Clear()
 {
-	memset(&m_Over, 0, sizeof(m_Over));
+	// m_Over 구조체 초기화
+	ZeroMemory(&m_Over, sizeof(m_Over));	
 	memset(m_Buffer, 0, BUF_SIZE);
 
 	m_IOtype = IO_TYPE::READ;

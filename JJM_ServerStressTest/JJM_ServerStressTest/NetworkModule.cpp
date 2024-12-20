@@ -60,10 +60,29 @@ void NetworkModule::WorkerThread()
 
 void NetworkModule::TestThread()
 {
+	constexpr float SendInterval_CPkt_Transform = 1.f; // 0.1초 간격 (10Hz)
+	const auto sendIntervalDuration = std::chrono::duration<float>(SendInterval_CPkt_Transform);
+
+	auto lastSendTime_CPkt_Transform = std::chrono::steady_clock::now();
+
 	while (m_NetworkStart) {
 		Try_Connect_Session_ToServer();
+
+		auto currTime = std::chrono::steady_clock::now();
+
+		// 패킷 전송 간격 확인 및 전송
+		if (currTime - lastSendTime_CPkt_Transform >= sendIntervalDuration) {
+			for (int i = 0; i < m_Connected_clients_num; ++i) {
+				if (!m_Sessions[i].m_IsConnected) continue; // 접속 종료된 세션은 패스
+
+				m_Sessions[i].Send_CPkt_Transform();
+			}
+			// 마지막 전송 시간 갱신 (현재 시간을 사용)
+			lastSendTime_CPkt_Transform = currTime;
+		}
 	}
 }
+
 
 void NetworkModule::Execute(int workerThread_num)
 {
@@ -77,22 +96,27 @@ void NetworkModule::Execute(int workerThread_num)
 void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 {
 	// Connect ! 
-	;
 	m_Sessions[ID].Init(ID);
 	bool ret = m_Sessions[ID].Connect(SERVER_IP, SERVER_PORT);
 	if (ret == false) {
-		m_Connected_clients_num--;
 		return;
 	}
 	m_Connected_clients_num++;
+	m_Active_clients_num++;
+
 	m_Sessions[ID].CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
 	m_Last_connected_time = Clock::now();
-	std::cout << ID << " Connected\n";
 
-	m_Sessions[ID].Send_CPkt_LogIn(std::to_string(ID), "1234");
+	if (!m_Sessions[ID].Send_CPkt_LogIn(std::to_string(ID), "1234")) {
+		std::cout << ID << " Send Failed\n";
+		return;
+	}
 	m_Sessions[ID].DoRecv();
 
-	if (ID % MAX_CLIENT_PER_ROOM == 0)
+	// 0 Room : 0 ~ 499
+	// 1 Room : 500 ~ 599 
+	// ...
+	if (ID > 0 && (ID + 1) % MAX_CLIENT_PER_ROOM == 0)
 		m_Sessions[ID].Send_CPkt_PlayGame();
 
 }
@@ -111,9 +135,13 @@ void NetworkModule::Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* o
 		if (m_Sessions[id].OnRecv(bytes, over) == false)
 			Disconnect_Session_FromServer(id);
 	}
+	break;
 	case IO_TYPE::WRITE:
 	{
+		if (m_Sessions[id].OnSend(bytes, over) == false)
+			Disconnect_Session_FromServer(id);
 	}
+	break;
 	default:
 		break;
 	}
@@ -138,8 +166,11 @@ void NetworkModule::Try_Connect_Session_ToServer()
 {
 	static int connect_time_val = 1;
 
+	// m_Active_clients_num 이 UINT64 여서 -1  일때 MAX_USER 보다 크다고 처리됐었ㅇ므..
+	// 자료형을 같이 해야했음
 	// 동접 끝까지 차면 접속 끊기 
-	if (m_Active_clients_num.load() >= MAX_USER)
+	LONG64 activeclientsNum = m_Active_clients_num.load();
+	if (activeclientsNum >= MAX_USER)
 		return;
 
 	// connected_client_num = session ID = session Index 이므로 범위 벗어나면 귾어야함.
@@ -181,10 +212,10 @@ void NetworkModule::Disconnect_Session_FromServer(LONG64 ID)
 {
 
 	// Session이 Connect되어있는 상태를 false로 atomic 하게 변경 
-
 	bool status = true;
 	if (std::atomic_compare_exchange_strong(&m_Sessions[ID].m_IsConnected, &status, false))
 	{
+		// Disconnecct 관련 패킷 보내기 
 
 		m_Sessions[ID].Disconnect();
 		m_Active_clients_num--;
@@ -269,8 +300,40 @@ void NetworkModule::Draw_Sessions()
 		// 점 그리기
 		Win32RenderMgr::GetInstance()->DrawFilledRectangle(
 			POINT{ dotX, dotY },
-			1, 1, // 점의 크기
-			RGB(255, 100, 0) 
+			3, 3, // 점의 크기
+			RGB(200, 100, 0) 
 		);
 	}
 }
+
+int NetworkModule::GetClientsInRoom(int roomid, int maxclientsNum)
+{
+	int result = 0;
+
+	// 방에 해당하는 세션 범위 계산
+	int startIdx = roomid * maxclientsNum;
+	int endIdx = startIdx + maxclientsNum;
+
+	// 범위를 벗어나지 않도록 MAX_CLIENT 확인
+	if (startIdx >= MAX_CLIENT)
+		return 0;
+
+	if (endIdx > MAX_CLIENT)
+		endIdx = MAX_CLIENT;
+
+	// 방에 속한 세션의 연결 상태를 확인
+	for (int i = startIdx; i < endIdx; ++i)
+	{
+		if (m_Sessions[i].m_IsConnected)
+		{
+			++result;
+		}
+
+		// 최적화: 이미 최대 인원을 초과하면 더 이상 검사할 필요가 없음
+		if (result >= maxclientsNum)
+			break;
+	}
+
+	return result;
+}
+

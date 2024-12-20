@@ -31,7 +31,10 @@ public:
 	TimeStamp           m_MoveTime{}; // 시간 간격을 두고 move packet 전송
 
 public:
-	Vec3				m_Pos;
+	Vec3				m_Pos{};
+	Vec3				m_MoveDir{};
+	float				m_MoveDirTime = 0; // 일정 시간동안 해당 방향으로 이동 
+
 
 public:
 	Session();
@@ -45,23 +48,29 @@ public:
 
 	// GQCS
 	bool OnRecv(int bytes, ExOverlapped* over);
+	bool OnSend(int bytes, ExOverlapped* over);
+
+
 
 	bool Connect(const std::string& ip, const short port);
 	void Disconnect();
 	HANDLE CreateIOCP(HANDLE& iocpsock, ULONG_PTR key, DWORD numofconcurrentThreads);
 
-	void Send_CPkt_LogIn(std::string id, std::string password);
-	void Recv_SPkt_LogIn();
+	bool Send_CPkt_LogIn(std::string id, std::string password);
+	bool Recv_SPkt_LogIn();
 
-	void Send_CPkt_EnterLobby();
-	void Recv_SPkt_EnterLobby();
+	bool Send_CPkt_EnterLobby();
+	bool Recv_SPkt_EnterLobby();
 
-	void Send_CPkt_PlayGame();
-	void Recv_SPkt_PlayGame();
+	bool Send_CPkt_PlayGame();
+	bool Recv_SPkt_PlayGame();
 
-	void Send_CPkt_EnterGame();
+	bool Send_CPkt_EnterGame();
+
+	bool Send_CPkt_Transform();
+	bool Recv_SPkt_Transform(const void* data);
+
 
 	void InterpretPacket(BYTE* packet);
-
 };
 

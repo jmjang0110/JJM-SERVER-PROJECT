@@ -23,7 +23,24 @@ bool Win32RenderMgr::Init(HWND& hwnd, const LONG& wdith, const LONG& height)
 
 	mBackBuffer     = CreateCompatibleBitmap(mFrontHDC, wdith, height);
 	mPrevBackBuffer = static_cast<HBITMAP>(SelectObject(mBackHDC, mBackBuffer));
-
+	
+	HFONT hFont = CreateFont(
+		20,							 // Height of the font
+		0,                           // Width of the font (0 means it will be calculated automatically)
+		0,                           // Angle of the font's escapement
+		0,                           // Angle of the font's orientation
+		FW_NORMAL,                   // Font weight
+		0,                           // Italic
+		0,                           // Underline
+		0,                           // Strikeout
+		DEFAULT_CHARSET,             // Character set
+		OUT_DEFAULT_PRECIS,          // Output precision
+		CLIP_DEFAULT_PRECIS,         // Clipping precision
+		DEFAULT_QUALITY,             // Output quality
+		DEFAULT_PITCH | FF_DONTCARE, // Pitch and family
+		L"Times New Roman"                     // Font name (change as needed)
+	);
+	
 	return true;
 }
 
@@ -89,32 +106,10 @@ void Win32RenderMgr::DrawImage(Image& drawImage, vec2& window_lt, vec2& window_s
 
 void Win32RenderMgr::DrawWText(const POINT& position, const std::wstring& text)
 {
-	::TextOut(mBackHDC, position.x, position.y, text.c_str(), static_cast<int>(text.length()));
-}
-
-void Win32RenderMgr::DrawWText(const POINT& position, const std::wstring& text, int fontSize)
-{
-	HFONT hFont = CreateFont(
-		fontSize,                    // Height of the font
-		0,                           // Width of the font (0 means it will be calculated automatically)
-		0,                           // Angle of the font's escapement
-		0,                           // Angle of the font's orientation
-		FW_NORMAL,                   // Font weight
-		0,                           // Italic
-		0,                           // Underline
-		0,                           // Strikeout
-		DEFAULT_CHARSET,             // Character set
-		OUT_DEFAULT_PRECIS,          // Output precision
-		CLIP_DEFAULT_PRECIS,         // Clipping precision
-		DEFAULT_QUALITY,             // Output quality
-		DEFAULT_PITCH | FF_DONTCARE, // Pitch and family
-		L"Times New Roman"                     // Font name (change as needed)
-	);
-
-	HFONT hPrevFont = (HFONT)SelectObject(mBackHDC, hFont);
+	HFONT hPrevFont = (HFONT)SelectObject(mBackHDC, mFont);
 	::TextOut(mBackHDC, position.x, position.y, text.c_str(), static_cast<int>(text.length()));
 	SelectObject(mBackHDC, hPrevFont);
-	DeleteObject(hFont);
+	DeleteObject(mFont);
 }
 
 void Win32RenderMgr::SetPen(int style, int width, COLORREF color)

@@ -32,6 +32,8 @@ private:
 	HPEN		mPrevPen{};
 
 	HBRUSH		mBrush{};  
+	HFONT		mFont{};
+
 public:
 	Win32RenderMgr();
 	~Win32RenderMgr();
@@ -50,7 +52,6 @@ public:
 	void DrawPoint(const POINT& position, int radius);
 	void DrawImage(Image& drawImage, vec2& window_lt, vec2& window_size);
 	void DrawWText(const POINT& position, const std::wstring& text);
-	void DrawWText(const POINT& position, const std::wstring& text, int fontSize);
 
 public:
 	void SetPen(int style, int width, COLORREF color);

@@ -1,10 +1,10 @@
 #pragma once
 
 // CLIENT, ROOM 
-const static  UINT64 MAX_USER            = 2000;
-const static  UINT64 MAX_CLIENT          = MAX_USER * 2;
-const static  UINT64 MAX_CLIENT_PER_ROOM = 500; // ROOM당 4명으로 수용
-const static  UINT64 MAX_ROOM            = MAX_CLIENT / 4; // 서버 전체 ROOM개수
+const static  LONG64 MAX_USER            = 2000;
+const static  LONG64 MAX_CLIENT          = MAX_USER * 2;
+const static  LONG64 MAX_CLIENT_PER_ROOM = 500; // ROOM당 4명으로 수용
+const static  LONG64 MAX_ROOM            = MAX_CLIENT / 4; // 서버 전체 ROOM개수
 
 // SERVER IP , PORT 
 const std::string    SERVER_IP           = "127.0.0.1";
@@ -42,7 +42,7 @@ private:
 	std::thread					m_tTest{};	  // stress test thread
 	bool						m_NetworkStart = false;
 
-	int							m_delay{};
+	long long					m_delay{};
 
 public:
 	static std::array<LONG64, MAX_CLIENT>		m_Client_ID_map;
@@ -53,23 +53,36 @@ public:
 	~NetworkModule();
 
 private:
+	// Thread 
 	void WorkerThread();
 	void TestThread();
 	// Get Queued Completion Status Task info
 	bool GQCS( /*IN-OUT*/ CompletionTask& completionstatus);
+	void Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* over);
+	// send/recv with Server 
 	void Try_Connect_Session_ToServer();
 	void Connect_Session_ToServer(LONG64 ID);
 	void Disconnect_Session_FromServer(LONG64 ID);
-	void Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* over);
 
 public:
 	void Init();
 	void Execute(int workerThread_num);
 	int  GetConnectedClientsNum() { return m_Connected_clients_num.load(); }
+	LONG64 GetActiveClientsNum() { return m_Active_clients_num.load(); }
+
 
 	void Exit();
 	void PrintErrorDescription(int errorCode);
 	void Draw_Sessions();
+
+	int GetClientsInRoom(int roomid, int maxclientsNum);
+
+
+public:
+	// Get 
+	long long GetDelay() { return m_delay; }
+	void UpDelay() { m_delay++; }
+	void DownDelay() { m_delay--; }
 
 };
 

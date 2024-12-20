@@ -68,6 +68,8 @@ table CPkt_Player_Transform
 	spine_look	: Vector3;					// 12 bytes (3 * 4 bytes)
 	animparam_h : float;					// 4 bytes
 	animparam_v : float;					// 4 bytes
+
+	move_time   : long;
 }
 
 table SPkt_Player_Transform
@@ -85,6 +87,8 @@ table SPkt_Player_Transform
 	spine_look	: Vector3;					// 12 bytes (3 * 4 bytes)
 	animparam_h : float;					// 4 bytes
 	animparam_v : float;					// 4 bytes
+	
+	move_time   : long;
 
 }
 

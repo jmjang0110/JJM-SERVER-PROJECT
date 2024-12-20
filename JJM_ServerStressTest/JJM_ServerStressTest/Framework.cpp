@@ -82,20 +82,28 @@ void Framework::LoopLogic()
     int clientCnt = NetworkModule::GetInstance()->GetConnectedClientsNum();
     std::wstring timew = std::to_wstring(clientCnt);
 
-    // 클라이언트 연결 정보 출력
-    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 5 }, L"Connected Clients : " + timew, 30);
+    LONG64 activeCnt = NetworkModule::GetInstance()->GetActiveClientsNum();
+    std::wstring activeClW = std::to_wstring(activeCnt);
 
-    // 5 x 2 방 그리기
+    
+    // 클라이언트 연결 정보 출력
+    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 5 }, L"Connected Clients : " + timew);
+    long long delay = NetworkModule::GetInstance()->GetDelay();
+    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 35 }, L"Delay : " + std::to_wstring(delay));
+    Win32RenderMgr::GetInstance()->DrawWText(POINT{ 10, 65 }, L"Active Clients : " + activeClW);
+
+    // 방 크기 및 간격 정의
     const int cols = 5;                      // 열의 개수 (가로)
     const int rows = 2;                      // 행의 개수 (세로)
-    const int roomWidth = ROOM_WIDTH;               // 각 방의 너비
-    const int roomHeight = ROOM_HEIGHT;              // 각 방의 높이
+    const int roomWidth = ROOM_WIDTH;        // 각 방의 너비
+    const int roomHeight = ROOM_HEIGHT;      // 각 방의 높이
     const int margin = 20;                   // 방 사이의 간격
     const int textOffsetY = 20;              // 텍스트의 Y축 위쪽 간격
     const int startX = 50;                   // 시작 X 좌표
     const int startY = 100;                  // 시작 Y 좌표
 
-    int roomNumber = 1;                      // 방 번호 시작값
+    int roomNumber = 0;                      // 방 번호 시작값
+    int maxClientsPerRoom = MAX_CLIENT_PER_ROOM; // 방당 최대 클라이언트 수
 
     for (int row = 0; row < rows; ++row)
     {
@@ -107,18 +115,25 @@ void Framework::LoopLogic()
 
             // 방 번호 출력 (방 위쪽)
             std::wstring roomNumText = L"Room " + std::to_wstring(roomNumber);
-            Win32RenderMgr::GetInstance()->DrawWText(POINT{ x + roomWidth / 4, y - textOffsetY }, roomNumText, 20);
+            Win32RenderMgr::GetInstance()->DrawWText(POINT{ x + roomWidth / 4, y - textOffsetY }, roomNumText);
+
+            // 방에 포함된 클라이언트 수 계산
+            int clientsInRoom = NetworkModule::GetInstance()->GetClientsInRoom(roomNumber, maxClientsPerRoom);
+            std::wstring clientCountText = L" - Clients: " + std::to_wstring(clientsInRoom);
+
+            // 방 내부에 클라이언트 수 출력
+            Win32RenderMgr::GetInstance()->DrawWText(POINT{ x + roomWidth / 4 + 50, y - textOffsetY  }, clientCountText);
 
             // 사각형 그리기 (방)
             Win32RenderMgr::GetInstance()->DrawFilledRectangle(POINT{ x, y }, roomWidth, roomHeight, RGB(50, 150, 200));
             Win32RenderMgr::GetInstance()->DrawRectangle(POINT{ x, y }, roomWidth, roomHeight); // 테두리 추가
 
-            // Sessions 그리기
-            NetworkModule::GetInstance()->Draw_Sessions();
-
             ++roomNumber; // 다음 방 번호
         }
     }
+
+    // 모든 세션의 클라이언트 위치 랜더링
+    NetworkModule::GetInstance()->Draw_Sessions();
 
     Win32RenderMgr::GetInstance()->Render_Present(m_Resolution[0], m_Resolution[1]);
 }
