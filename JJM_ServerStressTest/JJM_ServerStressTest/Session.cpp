@@ -105,16 +105,15 @@ bool Session::DoRecv()
 
 bool Session::OnRecv(int bytes, ExOverlapped* over)
 {
-	// 수신된 데이터의 크기를 확인합니다.
 	if (bytes <= 0) {
-		return false; // 데이터가 없으면 처리 중단
+		return false; // 수신된 데이터가 없으면 처리 중단
 	}
 
-	// 남아있는 데이터 크기를 갱신
+	// 남아있는 데이터 크기 갱신
 	m_Remain_Recv_DataSize += bytes;
 
 	BYTE* buffer = over->m_Buffer;
-	UINT32 ProcessDataSize = 0; // 처리한 데이터 크기 
+	UINT32 ProcessDataSize = 0; // 처리된 데이터 크기
 	UINT32 TotalSize = m_Remain_Recv_DataSize;
 
 	while (ProcessDataSize < TotalSize) {
@@ -125,15 +124,15 @@ bool Session::OnRecv(int bytes, ExOverlapped* over)
 			break;
 		}
 
-		// 패킷 헤더를 읽음
+		// 패킷 헤더 읽기
 		BYTE* startBufferPtr = buffer + ProcessDataSize;
 		PacketHeader* packet = reinterpret_cast<PacketHeader*>(startBufferPtr);
 
-		// 남은 데이터가 패킷 전체 크기보다 작으면 다음 수신에서 처리
-		if (RemainSize < packet->PacketSize) {
-			// 패킷 손상 처리 (필요에 따라 연결 종료)
-			//printf("Invalid packet size: %u\n", packet->PacketSize);
-			break;
+		// 패킷 크기 유효성 검사
+		if (packet->PacketSize < sizeof(PacketHeader) || packet->PacketSize > 1024) {
+			// 비정상적인 패킷 크기 (패킷 손상 가능성)
+			printf("Invalid packet size: %u\n", packet->PacketSize);
+			return false; // 연결을 종료하거나 에러 처리
 		}
 
 		// 남은 데이터가 패킷 전체 크기보다 작으면 다음 수신에서 처리
@@ -141,15 +140,19 @@ bool Session::OnRecv(int bytes, ExOverlapped* over)
 			break;
 		}
 
+		// 패킷 처리
 		InterpretPacket(startBufferPtr);
 
-		// 처리된 데이터 크기만큼 증가
+		// 처리된 데이터 크기 증가
 		ProcessDataSize += packet->PacketSize;
 	}
 
 	// 처리되지 않은 데이터는 버퍼 맨 앞으로 이동
 	m_Remain_Recv_DataSize = TotalSize - ProcessDataSize;
 	if (m_Remain_Recv_DataSize > 0) {
+		if (m_Remain_Recv_DataSize >= 1024) {
+			assert(0); // 비정상적인 데이터 크기
+		}
 		memmove(buffer, buffer + ProcessDataSize, m_Remain_Recv_DataSize);
 	}
 
@@ -296,18 +299,27 @@ bool Session::Recv_SPkt_Transform(const void* data)
 	//std::cout << "[" << m_ID << "] - Latency : " << packet->latency() << "\n";
 
 	long long prevtime = packet->move_time();
+	int player_id = packet->player_id();
 
-	if (0 != prevtime) {
+	// X-Machina 는 socket을 아이디로 해서 갖고 있음 .
+	if (0 != prevtime && player_id == (int)m_Socket) {
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 		).count() - prevtime;
 
 		auto curr_delay = NetworkModule::GetInstance()->GetDelay();
-		if (curr_delay < dt)
+		if (curr_delay < dt) {
+			//std::cout << "delay : " << curr_delay << "\n";
 			NetworkModule::GetInstance()->UpDelay();
-		else if (curr_delay > dt)
+		}
+		else if (curr_delay > dt) {
+			//std::cout << "delay : " << curr_delay << "\n";
 			NetworkModule::GetInstance()->DownDelay();
+		}
+
 	}
+	else
+		assert(0);
 
 	return false;
 }
@@ -324,6 +336,7 @@ void Session::InterpretPacket(BYTE* packet)
 		//std::cout << "FBsProtocolID_SPkt_LogIn Recv \n";
 		Send_CPkt_EnterLobby();
 		m_IsConnected.store(true);
+		NetworkModule::GetInstance()->UpActiveClients();
 
 	}
 		break;

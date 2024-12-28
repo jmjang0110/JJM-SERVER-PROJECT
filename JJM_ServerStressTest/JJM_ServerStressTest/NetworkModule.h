@@ -32,6 +32,7 @@ private:
 private:
 	HANDLE						m_hIOCP{};
 
+	Concurrency::concurrent_queue<LONG64> m_Reconnect_clients_Q;
 	std::atomic<LONG64>			m_Connected_clients_num{};
 	std::atomic<LONG64>			m_Active_clients_num{};
 	std::atomic<LONG64>			m_close_ID{};
@@ -62,7 +63,7 @@ private:
 	// send/recv with Server 
 	void Try_Connect_Session_ToServer();
 	void Connect_Session_ToServer(LONG64 ID);
-	void Disconnect_Session_FromServer(LONG64 ID);
+	void Disconnect_Session_FromServer();
 
 public:
 	void Init();
@@ -84,5 +85,6 @@ public:
 	void UpDelay() { m_delay++; }
 	void DownDelay() { m_delay--; }
 
+	void UpActiveClients() { m_Active_clients_num++; }
 };
 

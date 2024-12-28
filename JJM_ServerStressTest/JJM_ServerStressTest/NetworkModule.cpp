@@ -50,7 +50,7 @@ void NetworkModule::WorkerThread()
 			int err = ::WSAGetLastError();
 			if (err != ERROR_IO_PENDING) {
 				PrintErrorDescription(err);
-				Disconnect_Session_FromServer(iocp_task.key_ID);
+				//Disconnect_Session_FromServer(iocp_task.key_ID);
 				continue;
 			}
 		}
@@ -101,8 +101,10 @@ void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 	if (ret == false) {
 		return;
 	}
-	m_Connected_clients_num++;
-	m_Active_clients_num++;
+	if(ID == m_Connected_clients_num)
+		m_Connected_clients_num++;
+
+
 	m_Sessions[ID].CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
 	m_Last_connected_time = Clock::now();
 
@@ -131,14 +133,18 @@ void NetworkModule::Process_CompletionTask(LONG64 id, int bytes, ExOverlapped* o
 	{
 	case IO_TYPE::READ:
 	{
-		if (m_Sessions[id].OnRecv(bytes, over) == false)
-			Disconnect_Session_FromServer(id);
+		if (m_Sessions[id].OnRecv(bytes, over) == false) {
+
+		}
+			//Disconnect_Session_FromServer(id);
 	}
 	break;
 	case IO_TYPE::WRITE:
 	{
-		if (m_Sessions[id].OnSend(bytes, over) == false)
-			Disconnect_Session_FromServer(id);
+		if (m_Sessions[id].OnSend(bytes, over) == false) {
+
+		}
+			//Disconnect_Session_FromServer(id);
 	}
 	break;
 	default:
@@ -189,7 +195,7 @@ void NetworkModule::Try_Connect_Session_ToServer()
 	int delay = m_delay;
 	if (delay >= LIMIT_DELAY) {
 		m_Last_connected_time = Clock::now();
-		Disconnect_Session_FromServer(m_close_ID.load());
+		Disconnect_Session_FromServer();
 		return;
 	}
 	else if (delay >= LIMIT_DELAY / 2) {
@@ -202,22 +208,30 @@ void NetworkModule::Try_Connect_Session_ToServer()
 	if (connect_time_val * CONNECT_DELAY > deltaT)
 		return;
 
+	LONG64 connect_ID = -1;
+	//if(!m_Reconnect_clients_Q.empty()) {
+	//	m_Reconnect_clients_Q.try_pop(connect_ID);
+	//}
 
-	LONG64 ID = m_Connected_clients_num;
-	Connect_Session_ToServer(ID);
+	if (connect_ID == -1) {
+		connect_ID = m_Connected_clients_num.load();
+	}
+	Connect_Session_ToServer(connect_ID);
 }
 
-void NetworkModule::Disconnect_Session_FromServer(LONG64 ID)
+void NetworkModule::Disconnect_Session_FromServer()
 {
+	int close_id = m_close_ID;
 
 	// Session이 Connect되어있는 상태를 false로 atomic 하게 변경 
 	bool status = true;
-	if (std::atomic_compare_exchange_strong(&m_Sessions[ID].m_IsConnected, &status, false))
+	if (std::atomic_compare_exchange_strong(&m_Sessions[close_id].m_IsConnected, &status, false))
 	{
 		// Disconnecct 관련 패킷 보내기 
 
-		m_Sessions[ID].Disconnect();
+		m_Sessions[close_id].Disconnect();
 		m_Active_clients_num--;
+		m_Reconnect_clients_Q.push(close_id);
 		m_close_ID++;
 	}
 }
@@ -274,7 +288,7 @@ void NetworkModule::Draw_Sessions()
 	const int startY = 100;                  // 방 시작 Y 좌표
 	const int maxClientsPerRoom = MAX_CLIENT_PER_ROOM; // 방당 최대 클라이언트 수
 
-	for (LONG64 clientID = 0; clientID < m_Connected_clients_num; ++clientID)
+	for (LONG64 clientID = 0; clientID < m_Active_clients_num; ++clientID)
 	{
 		// 방 번호 계산 (0부터 시작)
 		int roomIndex = clientID / maxClientsPerRoom;
