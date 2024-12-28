@@ -333,16 +333,20 @@ inline ::flatbuffers::Offset<SPkt_PlayerOnSkill> CreateSPkt_PlayerOnSkill(
 struct CPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef CPkt_Player_TransformBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_MOVE_STATE = 4,
-    VT_LATENCY = 6,
-    VT_VELOCITY = 8,
-    VT_MOVEDIR = 10,
-    VT_TRANS = 12,
-    VT_SPINE_LOOK = 14,
-    VT_ANIMPARAM_H = 16,
-    VT_ANIMPARAM_V = 18,
-    VT_MOVE_TIME = 20
+    VT_CLIENT_ID = 4,
+    VT_MOVE_STATE = 6,
+    VT_LATENCY = 8,
+    VT_VELOCITY = 10,
+    VT_MOVEDIR = 12,
+    VT_TRANS = 14,
+    VT_SPINE_LOOK = 16,
+    VT_ANIMPARAM_H = 18,
+    VT_ANIMPARAM_V = 20,
+    VT_MOVE_TIME = 22
   };
+  uint32_t client_id() const {
+    return GetField<uint32_t>(VT_CLIENT_ID, 0);
+  }
   FBProtocol::PLAYER_MOTION_STATE_TYPE move_state() const {
     return static_cast<FBProtocol::PLAYER_MOTION_STATE_TYPE>(GetField<uint8_t>(VT_MOVE_STATE, 0));
   }
@@ -372,6 +376,7 @@ struct CPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_CLIENT_ID, 4) &&
            VerifyField<uint8_t>(verifier, VT_MOVE_STATE, 1) &&
            VerifyField<int64_t>(verifier, VT_LATENCY, 8) &&
            VerifyField<float>(verifier, VT_VELOCITY, 4) &&
@@ -392,6 +397,9 @@ struct CPkt_Player_TransformBuilder {
   typedef CPkt_Player_Transform Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_client_id(uint32_t client_id) {
+    fbb_.AddElement<uint32_t>(CPkt_Player_Transform::VT_CLIENT_ID, client_id, 0);
+  }
   void add_move_state(FBProtocol::PLAYER_MOTION_STATE_TYPE move_state) {
     fbb_.AddElement<uint8_t>(CPkt_Player_Transform::VT_MOVE_STATE, static_cast<uint8_t>(move_state), 0);
   }
@@ -432,6 +440,7 @@ struct CPkt_Player_TransformBuilder {
 
 inline ::flatbuffers::Offset<CPkt_Player_Transform> CreateCPkt_Player_Transform(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t client_id = 0,
     FBProtocol::PLAYER_MOTION_STATE_TYPE move_state = FBProtocol::PLAYER_MOTION_STATE_TYPE_NONE,
     int64_t latency = 0,
     float velocity = 0.0f,
@@ -450,6 +459,7 @@ inline ::flatbuffers::Offset<CPkt_Player_Transform> CreateCPkt_Player_Transform(
   builder_.add_trans(trans);
   builder_.add_movedir(movedir);
   builder_.add_velocity(velocity);
+  builder_.add_client_id(client_id);
   builder_.add_move_state(move_state);
   return builder_.Finish();
 }
@@ -457,17 +467,21 @@ inline ::flatbuffers::Offset<CPkt_Player_Transform> CreateCPkt_Player_Transform(
 struct SPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SPkt_Player_TransformBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_PLAYER_ID = 4,
-    VT_MOVE_STATE = 6,
-    VT_LATENCY = 8,
-    VT_VELOCITY = 10,
-    VT_MOVEDIR = 12,
-    VT_TRANS = 14,
-    VT_SPINE_LOOK = 16,
-    VT_ANIMPARAM_H = 18,
-    VT_ANIMPARAM_V = 20,
-    VT_MOVE_TIME = 22
+    VT_CLIENT_ID = 4,
+    VT_PLAYER_ID = 6,
+    VT_MOVE_STATE = 8,
+    VT_LATENCY = 10,
+    VT_VELOCITY = 12,
+    VT_MOVEDIR = 14,
+    VT_TRANS = 16,
+    VT_SPINE_LOOK = 18,
+    VT_ANIMPARAM_H = 20,
+    VT_ANIMPARAM_V = 22,
+    VT_MOVE_TIME = 24
   };
+  uint32_t client_id() const {
+    return GetField<uint32_t>(VT_CLIENT_ID, 0);
+  }
   uint32_t player_id() const {
     return GetField<uint32_t>(VT_PLAYER_ID, 0);
   }
@@ -500,6 +514,7 @@ struct SPkt_Player_Transform FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_CLIENT_ID, 4) &&
            VerifyField<uint32_t>(verifier, VT_PLAYER_ID, 4) &&
            VerifyField<uint8_t>(verifier, VT_MOVE_STATE, 1) &&
            VerifyField<int64_t>(verifier, VT_LATENCY, 8) &&
@@ -521,6 +536,9 @@ struct SPkt_Player_TransformBuilder {
   typedef SPkt_Player_Transform Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_client_id(uint32_t client_id) {
+    fbb_.AddElement<uint32_t>(SPkt_Player_Transform::VT_CLIENT_ID, client_id, 0);
+  }
   void add_player_id(uint32_t player_id) {
     fbb_.AddElement<uint32_t>(SPkt_Player_Transform::VT_PLAYER_ID, player_id, 0);
   }
@@ -564,6 +582,7 @@ struct SPkt_Player_TransformBuilder {
 
 inline ::flatbuffers::Offset<SPkt_Player_Transform> CreateSPkt_Player_Transform(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t client_id = 0,
     uint32_t player_id = 0,
     FBProtocol::PLAYER_MOTION_STATE_TYPE move_state = FBProtocol::PLAYER_MOTION_STATE_TYPE_NONE,
     int64_t latency = 0,
@@ -584,6 +603,7 @@ inline ::flatbuffers::Offset<SPkt_Player_Transform> CreateSPkt_Player_Transform(
   builder_.add_movedir(movedir);
   builder_.add_velocity(velocity);
   builder_.add_player_id(player_id);
+  builder_.add_client_id(client_id);
   builder_.add_move_state(move_state);
   return builder_.Finish();
 }

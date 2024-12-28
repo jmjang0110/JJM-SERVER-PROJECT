@@ -58,6 +58,7 @@ table SPkt_PlayerOnSkill
 // ------------------------+
 table CPkt_Player_Transform
 {
+	client_id   : uint;
 	move_state  : PLAYER_MOTION_STATE_TYPE; // 1 byte
 	
 	latency     : long;						// 8 bytes
@@ -74,6 +75,7 @@ table CPkt_Player_Transform
 
 table SPkt_Player_Transform
 {
+	client_id   : uint;
 	player_id	: uint;					// 8 bytes				// uint64
 
 	move_state  : PLAYER_MOTION_STATE_TYPE; // 1 byte
