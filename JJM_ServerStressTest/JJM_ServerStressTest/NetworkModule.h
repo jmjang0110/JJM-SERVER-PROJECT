@@ -7,7 +7,8 @@ const static  LONG64 MAX_CLIENT_PER_ROOM = 500; // ROOM당 4명으로 수용
 const static  LONG64 MAX_ROOM            = MAX_CLIENT / 4; // 서버 전체 ROOM개수
 
 // SERVER IP , PORT 
-const std::string    SERVER_IP           = "127.0.0.1";
+//const std::string    SERVER_IP           = "127.0.0.1";
+const std::string    SERVER_IP           = "172.30.1.97";
 const short          SERVER_PORT         = 7777;
 
 // DELAY 

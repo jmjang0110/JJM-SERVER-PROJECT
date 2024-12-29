@@ -69,18 +69,18 @@ bool Session::DoSend(void* data, const UINT& dataSize, UINT16 protocolID)
 
 	void* p = &over->m_Over;
 
-	m_SessionLock.lock();
+	//m_SessionLock.lock();
 	int result = ::WSASend(m_Socket, &over->m_WSABuf, 1, NULL, 0, &over->m_Over, NULL);
 	if (SOCKET_ERROR == result) {
 		int error = ::WSAGetLastError();
 		if (error != WSA_IO_PENDING) {
 			delete over;
-			m_SessionLock.unlock();
+			//m_SessionLock.unlock();
 			return false;
 		}
 	}
 
-	m_SessionLock.unlock();
+	//m_SessionLock.unlock();
 	return true;
 }
 
@@ -280,8 +280,8 @@ bool Session::Send_CPkt_Transform()
 	auto speed = 2.f;
 	auto latency = 2.f;
 	auto move_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	auto pkt = FBProtocol::CreateCPkt_Player_Transform(builder
-		, FBProtocol::PLAYER_MOTION_STATE_TYPE::PLAYER_MOTION_STATE_TYPE_RUN,
+	auto pkt = FBProtocol::CreateCPkt_Player_Transform(builder,
+		m_ID, FBProtocol::PLAYER_MOTION_STATE_TYPE::PLAYER_MOTION_STATE_TYPE_RUN,
 		latency, speed, dir, trans, spine, 0.f, 0.f, move_time);
 
 	builder.Finish(pkt);
@@ -299,10 +299,10 @@ bool Session::Recv_SPkt_Transform(const void* data)
 	//std::cout << "[" << m_ID << "] - Latency : " << packet->latency() << "\n";
 
 	long long prevtime = packet->move_time();
-	int player_id = packet->player_id();
+	int client_id = packet->client_id();
 
 	// X-Machina 는 socket을 아이디로 해서 갖고 있음 .
-	if (0 != prevtime && player_id == (int)m_Socket) {
+	if (0 != prevtime && client_id == m_ID) {
 		auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 		).count() - prevtime;
@@ -318,8 +318,8 @@ bool Session::Recv_SPkt_Transform(const void* data)
 		}
 
 	}
-	else
-		assert(0);
+	//else
+		//assert(0);
 
 	return false;
 }

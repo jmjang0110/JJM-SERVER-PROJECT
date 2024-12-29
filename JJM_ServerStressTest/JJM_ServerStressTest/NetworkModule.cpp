@@ -72,8 +72,8 @@ void NetworkModule::TestThread()
 
 		// 패킷 전송 간격 확인 및 전송
 		if (currTime - lastSendTime_CPkt_Transform >= sendIntervalDuration) {
-			for (int i = 0; i < m_Connected_clients_num; ++i) {
-				if (!m_Sessions[i].m_IsConnected) continue; // 접속 종료된 세션은 패스
+			for (long long i = 0; i < m_Connected_clients_num; ++i) {
+				//if (!m_Sessions[i].m_IsConnected) continue; // 접속 종료된 세션은 패스
 
 				m_Sessions[i].Send_CPkt_Transform();
 			}

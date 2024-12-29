@@ -16,7 +16,7 @@ int APIENTRY wWinMain(_In_      HINSTANCE hInstance,
     }
 
     NetworkModule::GetInstance()->Init();
-    NetworkModule::GetInstance()->Execute(4);
+    NetworkModule::GetInstance()->Execute(6);
     int result = Framework::GetInstance()->Loop();
 
     Framework::GetInstance()->Destroy();
