@@ -41,8 +41,8 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
-typedef std::chrono::high_resolution_clock::time_point TimeStamp;
-typedef std::chrono::high_resolution_clock Clock;
+typedef std::chrono::steady_clock::time_point TimeStamp;
+typedef std::chrono::steady_clock Clock;
 typedef std::chrono::milliseconds ms;
-
+typedef std::chrono::seconds s;
 thread_local int thread_id;

@@ -60,26 +60,32 @@ void NetworkModule::WorkerThread()
 
 void NetworkModule::TestThread()
 {
-	constexpr float SendInterval_CPkt_Transform = 1.f; // 0.1초 간격 (10Hz)
+	constexpr float SendInterval_CPkt_Transform = 2.f; // 1초 간격
 	const auto sendIntervalDuration = std::chrono::duration<float>(SendInterval_CPkt_Transform);
 
 	auto lastSendTime_CPkt_Transform = std::chrono::steady_clock::now();
 
 	while (m_NetworkStart) {
+		// Try_Connect_Session_ToServer() 실행 시간 측정
 		Try_Connect_Session_ToServer();
 
 		auto currTime = std::chrono::steady_clock::now();
+		auto startTime = std::chrono::high_resolution_clock::now(); // 시작 시간 측정
 
 		// 패킷 전송 간격 확인 및 전송
-		if (currTime - lastSendTime_CPkt_Transform >= sendIntervalDuration) {
-			for (long long i = 0; i < m_Connected_clients_num; ++i) {
-				//if (!m_Sessions[i].m_IsConnected) continue; // 접속 종료된 세션은 패스
+		for (long long i = 0; i < m_Active_clients_num; ++i) {
+			if (!m_Sessions[i].m_IsConnected) continue; // 접속 종료된 세션은 패스
+			if (m_Sessions[i].m_MoveTime + s(1) > std::chrono::high_resolution_clock::now()) continue;
+			m_Sessions[i].m_MoveTime = std::chrono::high_resolution_clock::now();
 
-				m_Sessions[i].Send_CPkt_Transform();
-			}
-			// 마지막 전송 시간 갱신 (현재 시간을 사용)
-			lastSendTime_CPkt_Transform = currTime;
+			m_Sessions[i].Send_CPkt_Transform();
 		}
+
+		auto endTime = std::chrono::high_resolution_clock::now(); // 종료 시간 측정
+		std::chrono::duration<double, std::milli> elapsedTime = endTime - startTime;
+
+		// 실행 시간 출력 (밀리초 단위)
+		std::cout << "Packet sending execution time: " << elapsedTime.count() << " ms" << std::endl;
 	}
 }
 
@@ -95,15 +101,24 @@ void NetworkModule::Execute(int workerThread_num)
 
 void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 {
+	static auto lastConnectCallTime = std::chrono::steady_clock::now(); // 이전 호출 시간 저장
+
+	auto currentCallTime = std::chrono::steady_clock::now();
+	std::chrono::duration<double, std::milli> elapsedTime = currentCallTime - lastConnectCallTime;
+
+	// 시간 출력
+	std::cout << "Time since last Connect_Session_ToServer call: " << elapsedTime.count() << " ms" << std::endl;
+
+	lastConnectCallTime = currentCallTime; // 현재 시간을 마지막 호출 시간으로 갱신
+
 	// Connect ! 
 	m_Sessions[ID].Init(ID);
 	bool ret = m_Sessions[ID].Connect(SERVER_IP, SERVER_PORT);
 	if (ret == false) {
 		return;
 	}
-	if(ID == m_Connected_clients_num)
+	if (ID == m_Connected_clients_num)
 		m_Connected_clients_num++;
-
 
 	m_Sessions[ID].CreateIOCP(m_hIOCP, static_cast<ULONG_PTR>(ID), 0);
 	m_Last_connected_time = Clock::now();
@@ -119,8 +134,8 @@ void NetworkModule::Connect_Session_ToServer(LONG64 ID)
 	// ...
 	if (ID > 0 && (ID + 1) % MAX_CLIENT_PER_ROOM == 0)
 		m_Sessions[ID].Send_CPkt_PlayGame();
-
 }
+
 
 void NetworkModule::Exit()
 {

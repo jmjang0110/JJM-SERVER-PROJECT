@@ -5,7 +5,7 @@ enum class IO_TYPE{
 	READ, WRITE, CONNECT,
 	END,
 };
-constexpr int BUF_SIZE = 1024;
+constexpr int BUF_SIZE = 1024 * 2;
 
 class ExOverlapped
 {

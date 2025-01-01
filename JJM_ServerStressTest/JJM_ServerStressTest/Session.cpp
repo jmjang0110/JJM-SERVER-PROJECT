@@ -73,11 +73,11 @@ bool Session::DoSend(void* data, const UINT& dataSize, UINT16 protocolID)
 	int result = ::WSASend(m_Socket, &over->m_WSABuf, 1, NULL, 0, &over->m_Over, NULL);
 	if (SOCKET_ERROR == result) {
 		int error = ::WSAGetLastError();
-		if (error != WSA_IO_PENDING) {
-			delete over;
+		//if (error != WSA_IO_PENDING) {
+		//	delete over;
 			//m_SessionLock.unlock();
 			return false;
-		}
+		//}
 	}
 
 	//m_SessionLock.unlock();
@@ -271,6 +271,8 @@ bool Session::Send_CPkt_Transform()
 
 	flatbuffers::FlatBufferBuilder builder{};
 
+	m_Pos.x = rand() % 1000;
+	m_Pos.z = rand() % 1000;
 	auto dir = FBProtocol::CreateVector3(builder, m_MoveDir.x, m_MoveDir.y, m_MoveDir.z);
 	auto pos = FBProtocol::CreateVector3(builder, m_Pos.x, m_Pos.y, m_Pos.z);
 	auto rot = FBProtocol::CreateVector3(builder, 0.f, 0.f, 0.f);
@@ -286,6 +288,7 @@ bool Session::Send_CPkt_Transform()
 
 	builder.Finish(pkt);
 
+
 	//std::cout << "Send Transform Player Packet \n";
 	return DoSend(builder.GetBufferPointer(), builder.GetSize(), FBProtocol::FBsProtocolID_CPkt_Player_Transform);
 }
@@ -300,6 +303,7 @@ bool Session::Recv_SPkt_Transform(const void* data)
 
 	long long prevtime = packet->move_time();
 	int client_id = packet->client_id();
+
 
 	// X-Machina 는 socket을 아이디로 해서 갖고 있음 .
 	if (0 != prevtime && client_id == m_ID) {
