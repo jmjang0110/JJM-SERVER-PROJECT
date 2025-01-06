@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-constexpr int WIDTH = 20;
-constexpr int HEIGHT = 20;
+constexpr int WIDTH = 14;
+// constexpr int WIDTH = 20;
+constexpr int HEIGHT = 7;
+//constexpr int HEIGHT = 20;
 
 constexpr int OBSTACLE = 1;
 constexpr int ROAD     = 0;

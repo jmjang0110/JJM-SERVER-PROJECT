@@ -18,6 +18,10 @@ private:
 public:
 
 	bool Update();
+	bool Update2();
+	bool Update3();
+
+
 	int Heuristic(int y, int x);
 	int Hash(int y, int x);
 	void ReconstructPath(const Object& current);
