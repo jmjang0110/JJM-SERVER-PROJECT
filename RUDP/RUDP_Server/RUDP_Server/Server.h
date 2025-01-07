@@ -14,6 +14,7 @@ public:
 
 private:
 	static void SendThread(RUDPSocket& socket);
+	void RecvAckPacket(RUDPSocket& socket, UDPpacket& sendpkt);
 
 };
 

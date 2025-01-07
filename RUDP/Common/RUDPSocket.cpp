@@ -35,7 +35,8 @@ bool RUDPSocket::GetSendPacket(UDPpacket& packet)
 }
 
 void RUDPSocket::SendTo(std::byte* buf, size_t len, sockaddr_in& to) {
-    int result = sendto(m_SocketHandle,
+
+    int result = ::sendto(m_SocketHandle,
                         reinterpret_cast<char*>(buf),
                         static_cast<int>(len),
                         0,

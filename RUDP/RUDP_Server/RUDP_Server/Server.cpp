@@ -32,10 +32,17 @@ void Server::Execute()
         });
 
     // TODO : Send data Test And Measure Drop rate (UDP)
-    sockaddr_in& host = m_UDPsocket.GetAddress();
+    //sockaddr_in& host = m_UDPsocket.GetAddress();
+   
+    // CLIENT_PORT와 IP 주소 설정
+    sockaddr_in peer{};
+    peer.sin_family = AF_INET;
+    peer.sin_port = htons(CLIENT_PORT); // CLIENT_PORT
+    inet_pton(AF_INET, SERVER_IP.c_str(), &peer.sin_addr);
+
     uint64_t data = 0;
     while (data < 20'000) {
-        m_UDPsocket.RegisterSend(reinterpret_cast<std::byte*>(&data), sizeof(data), host);
+        m_UDPsocket.RegisterSend(reinterpret_cast<std::byte*>(&data), sizeof(data), peer);
         data++;
         std::cout << data << "\n";
 
@@ -53,8 +60,26 @@ void Server::SendThread(RUDPSocket& socket)
 
         if (socket.GetSendPacket(sendPkt)) {
             try {
+                uint64_t data = 0;
+                std::memcpy(&data, sendPkt.data.data(), sizeof(data));
                 auto peer = socket.StringToEndPoint(sendPkt.peer);
-                socket.SendTo(sendPkt.data.data(), sendPkt.data.size(), peer);
+
+                while (true) {
+                    // 1. send data 
+                    socket.SendTo(sendPkt.data.data(), sendPkt.data.size(), peer);
+                    std::cout << "Send : " << data << "\n";
+                    //break;
+
+                    // 2. recv ack packet 
+                    int receivedSize = socket.RecvFrom();
+                    if (receivedSize > 0) {
+                        bool ack{};
+                        std::memcpy(&ack, socket.GetRecvBuf(), sizeof(ack));
+                        std::cout << data << " - " << "ACK : " << ack << "\n";
+                        if (ack == true)
+                            break;
+                    }
+                }
             }
             catch (const std::exception& e) {
                 std::cerr << "Error sending packet: " << e.what() << std::endl;
