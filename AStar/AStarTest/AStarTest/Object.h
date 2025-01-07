@@ -19,8 +19,8 @@ public:
 
 	void SetGCost(float gcost) { m_gCost = gcost; }
 	void SetHCost(float hcost) { m_hCost = hcost; }
-	float GetGCost() { return m_gCost; }
-	float GetHCost() { return m_hCost; }
+	float GetGCost() const { return m_gCost; }
+	float GetHCost() const { return m_hCost; }
 
 	
 	bool operator>(const Object& rhs) const {

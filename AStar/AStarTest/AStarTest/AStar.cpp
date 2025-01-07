@@ -5,6 +5,9 @@
 
 bool AStar::Update()
 {
+	int candidate = 0;
+	int calcWeight = 0;
+
 	// 우선순위 큐 : Fcost ( g + h )가 작은 Object 부터 탐색 
 	std::priority_queue<Object, std::vector<Object>, std::greater<Object>> openList;
 
@@ -15,6 +18,7 @@ bool AStar::Update()
 	m_Start.SetGCost(0);
 	m_Start.SetHCost(Heuristic(m_Start.GetPosition().y, m_Start.GetPosition().x));
 	openList.push(m_Start);
+	candidate++;
 
 	while (!openList.empty()) {
 		Object curr = openList.top();
@@ -27,35 +31,162 @@ bool AStar::Update()
 
 		// 종료
 		if (pos == m_End.GetPosition()) {
+
 			ReconstructPath(curr);
 			return true;
 		}
 
-		// 인접 노드 탐색
+		// 인접 노드 탐색 (8방향)
 		// ↖ ↑ ↗
 		//  ← ● →	
 		// ↙ ↓ ↘
+		for (int i = 0; i < 8; ++i) {
+
+			int ny = pos.y + dy[i];
+			int nx = pos.x + dx[i];
+
+			if (ny < 0 || ny >= HEIGHT || nx < 0 || nx >= WIDTH) continue;
+			else if (GameMap[ny][nx] == OBSTACLE) continue;
+			else if (closeList[Hash(ny, nx)]) continue;
+
+			Object neighbor(ny, nx);
+			float gCost = (i < 4) ? 1 : 1.4f; // 상하좌우는 1, 대각선은 1.4
+
+			neighbor.SetGCost(curr.GetGCost() + gCost);
+			neighbor.SetHCost(Heuristic(ny, nx));
+			parent[neighbor.GetPosition()] = curr;
+
+			openList.push(neighbor);
+			candidate++;
+			calcWeight++;
+
+		}
+
+		std::cout << " --- \n";
+		std::cout << "Candidate : " << candidate << "\n";
+		std::cout << "Calc Weight : " << calcWeight << "\n";
+	}
+
+	return false;
+}
+
+bool AStar::Update2()
+{
+	int candidate = 0;
+	int calcWeight = 0;
+
+	// 우선순위 큐 : Fcost ( g + h )가 작은 Object 부터 탐색 
+	std::priority_queue<Object, std::vector<Object>, std::greater<Object>> openList;
+
+	// closeList ( 이미 탐색된 위치 )
+	std::unordered_map<int, Object> closeList;
+
+	// 시작노드 초기화
+	m_Start.SetGCost(0);
+	m_Start.SetHCost(Heuristic(m_Start.GetPosition().y, m_Start.GetPosition().x));
+	openList.push(m_Start);
+	closeList.insert({ Hash(m_Start.GetPosition().y, m_Start.GetPosition().x), m_Start });
+
+	candidate++;
+
+	while (!openList.empty()) {
+		Object curr = openList.top();
+		openList.pop();
+		POSITION pos = curr.GetPosition();
+
+		// 종료
+		if (pos == m_End.GetPosition()) {
+			ReconstructPath(curr);
+			return true;
+		}
+
+		// 인접 노드 탐색 (8방향)
 		for (int i = 0; i < 8; ++i) {
 			int ny = pos.y + dy[i];
 			int nx = pos.x + dx[i];
 
 			if (ny < 0 || ny >= HEIGHT || nx < 0 || nx >= WIDTH) continue;
-			if (GameMap[ny][nx] == OBSTACLE) continue;
-			if (closeList[Hash(ny, nx)]) continue;
+			else if (GameMap[ny][nx] == OBSTACLE) continue;
+			else if (closeList.find(Hash(ny, nx)) != closeList.end()) continue;
 
 			Object neighbor(ny, nx);
-			neighbor.SetGCost(curr.GetGCost() + 1);
+			float gCost = (i < 4) ? 1 : 1.4f; // 상하좌우는 1, 대각선은 1.4
+
+			neighbor.SetGCost(curr.GetGCost() + gCost);
 			neighbor.SetHCost(Heuristic(ny, nx));
-			parent[neighbor.GetPosition()] = curr;
 
-			openList.push(neighbor);
+			if (neighbor.GetFCost() <= curr.GetFCost()) {
+				parent[neighbor.GetPosition()] = curr;
+				openList.push(neighbor);
+				closeList.insert({ Hash(ny, nx), neighbor });
+			}
+
+
 		}
-
-
 	}
 
 	return false;
 }
+
+
+bool AStar::Update3() {
+
+	int candidate = 0;
+	int calcWeight = 0;
+
+	// 우선순위 큐 : Fcost ( g + h )가 작은 Object 부터 탐색 
+	std::priority_queue<Object, std::vector<Object>, std::greater<Object>> openList;
+
+	// closeList ( 이미 탐색된 위치 )
+	std::unordered_map<int, Object> closeList;
+
+	// 시작노드 초기화
+	m_Start.SetGCost(0);
+	m_Start.SetHCost(Heuristic(m_Start.GetPosition().y, m_Start.GetPosition().x));
+	openList.push(m_Start);
+	closeList.insert({ Hash(m_Start.GetPosition().y, m_Start.GetPosition().x), m_Start });
+
+	candidate++;
+
+	while (!openList.empty()) {
+		Object curr = openList.top();
+		openList.pop();
+		POSITION pos = curr.GetPosition();
+
+		// 종료
+		if (pos == m_End.GetPosition()) {
+			ReconstructPath(curr);
+			return true;
+		}
+
+		// 인접 노드 탐색 (8방향)
+		for (int i = 0; i < 8; ++i) {
+			int ny = pos.y + dy[i];
+			int nx = pos.x + dx[i];
+
+			if (ny < 0 || ny >= HEIGHT || nx < 0 || nx >= WIDTH) continue;
+			else if (GameMap[ny][nx] == OBSTACLE) continue;
+			else if (closeList.find(Hash(ny, nx)) != closeList.end()) continue;
+
+			Object neighbor(ny, nx);
+			float gCost = (i < 4) ? 1 : 1.4f; // 상하좌우는 1, 대각선은 1.4
+
+			neighbor.SetGCost(curr.GetGCost() + gCost);
+			neighbor.SetHCost(Heuristic(ny, nx));
+
+			// neighbor가 openList에 있을 때, 더 나은 경로로 G값을 갱신
+			if (closeList.find(Hash(ny, nx)) == closeList.end() || neighbor.GetGCost() <= curr.GetGCost()) {
+				parent[neighbor.GetPosition()] = curr;
+				openList.push(neighbor);
+				closeList.insert({ Hash(ny, nx), neighbor });
+			}
+		}
+	}
+
+	return false;
+
+}
+
 
 void AStar::ReconstructPath(const Object& current)
 {
@@ -74,9 +205,11 @@ void AStar::ReconstructPath(const Object& current)
 
 int AStar::Heuristic(int y, int x)
 {
+
 	int dx = std::abs(x - m_End.GetPosition().x);
 	int dy = std::abs(y - m_End.GetPosition().y);
 	return dx * dx + dy * dy;
+
 }
 
 int AStar::Hash(int y, int x)
