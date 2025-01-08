@@ -48,4 +48,6 @@ public:
 	void SetAddress(const sockaddr_in& addr) { m_HostEndPoint = addr; }
 	sockaddr_in& GetAddress()  { return m_HostEndPoint; }
 
+	bool IsValid();
+
 };

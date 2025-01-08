@@ -32,5 +32,7 @@ public:
 	int RecvFrom();
 
 	std::byte* GetRecvBuf() { return m_RecvBuffer; }
+	sockaddr_in Peer(const std::string& peer_ip, const u_short& peer_port);
+
 };
 

@@ -118,3 +118,7 @@ void Socket::PrintIPansPort()
 	std::cout << "Socket bound to: " << ipPort << std::endl;
 }
 
+bool Socket::IsValid()
+{
+	return m_SocketHandle != INVALID_SOCKET;
+}

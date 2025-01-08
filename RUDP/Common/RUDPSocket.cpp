@@ -69,3 +69,13 @@ int RUDPSocket::RecvFrom()
 
     return result;  // 수신한 데이터 크기 반환
 }
+
+sockaddr_in RUDPSocket::Peer(const std::string& peer_ip, const u_short& peer_port)
+{
+    sockaddr_in peer{};
+    peer.sin_family = AF_INET;
+    peer.sin_port = htons(peer_port); // CLIENT_PORT
+    inet_pton(AF_INET, peer_ip.c_str(), &peer.sin_addr);
+    return peer;
+}
+

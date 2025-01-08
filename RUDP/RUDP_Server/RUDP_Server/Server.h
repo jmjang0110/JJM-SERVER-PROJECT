@@ -7,6 +7,8 @@ private:
 	std::thread m_SendThread;
 	bool m_SendThreadLoop = true;
 
+	RUDPSocket m_peerSocket;
+
 public:
 	bool Init();
 	void Exit();

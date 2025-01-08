@@ -87,6 +87,7 @@ bool AStar::Update2()
 	openList.push(m_Start);
 	closeList.insert({ Hash(m_Start.GetPosition().y, m_Start.GetPosition().x), m_Start });
 
+	calcWeight++;
 	candidate++;
 
 	while (!openList.empty()) {
@@ -101,6 +102,9 @@ bool AStar::Update2()
 		}
 
 		// 인접 노드 탐색 (8방향)
+		// ↖ ↑ ↗
+		//  ← ● →	
+		// ↙ ↓ ↘
 		for (int i = 0; i < 8; ++i) {
 			int ny = pos.y + dy[i];
 			int nx = pos.x + dx[i];
@@ -121,8 +125,14 @@ bool AStar::Update2()
 				closeList.insert({ Hash(ny, nx), neighbor });
 			}
 
+			candidate++;
+			calcWeight++;
 
 		}
+
+		std::cout << " --- \n";
+		std::cout << "Candidate : " << candidate << "\n";
+		std::cout << "Calc Weight : " << calcWeight << "\n";
 	}
 
 	return false;

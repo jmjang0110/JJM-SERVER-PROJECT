@@ -32,14 +32,7 @@ void Server::Execute()
         });
 
     // TODO : Send data Test And Measure Drop rate (UDP)
-    //sockaddr_in& host = m_UDPsocket.GetAddress();
-   
-    // CLIENT_PORT와 IP 주소 설정
-    sockaddr_in peer{};
-    peer.sin_family = AF_INET;
-    peer.sin_port = htons(CLIENT_PORT); // CLIENT_PORT
-    inet_pton(AF_INET, SERVER_IP.c_str(), &peer.sin_addr);
-
+    sockaddr_in peer = m_UDPsocket.Peer(CLIENT_IP, CLIENT_PORT);
     uint64_t data = 0;
     while (data < 20'000) {
         m_UDPsocket.RegisterSend(reinterpret_cast<std::byte*>(&data), sizeof(data), peer);
