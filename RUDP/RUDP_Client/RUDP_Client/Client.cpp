@@ -8,7 +8,7 @@ bool Client::Init()
         throw std::exception("Failed WSAStartup.");
     }
 
-    m_UDPsocket.Bind(CLIENT_PORT, SERVER_IP);
+    m_UDPsocket.Bind(CLIENT_PORT, CLIENT_IP);
     std::cout << "------------- UDP SOCKET IP, Port -------------\n";
     m_UDPsocket.PrintIPansPort();
     std::cout << "-----------------------------------------------\n";
@@ -81,11 +81,8 @@ void Client::RecvNum(uint64_t data)
 void Client::SendAckPacket()
 {
     // SERVER_PORT와 IP 주소 설정
-    sockaddr_in peer{};
-    peer.sin_family = AF_INET;
-    peer.sin_port = htons(SERVER_PORT); // SERVER_PORT
-    inet_pton(AF_INET, SERVER_IP.c_str(), &peer.sin_addr);
 
+    sockaddr_in peer = m_UDPsocket.Peer(SERVER_IP, SERVER_PORT);
     bool ack = true;
     m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ack), sizeof(ack), peer);
 }
