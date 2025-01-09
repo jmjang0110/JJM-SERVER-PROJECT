@@ -14,7 +14,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    if (!framework.Init(hInstance, 1200, 600)) {
+    if (!framework.Init(hInstance, 1500, 1500)) {
         return -1;
     }
 

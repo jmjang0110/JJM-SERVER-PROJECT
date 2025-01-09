@@ -30,6 +30,8 @@
 #include <math.h>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
+#include <limits>
 
 #include <DirectXMath.h>
 #include "atlImage.h"

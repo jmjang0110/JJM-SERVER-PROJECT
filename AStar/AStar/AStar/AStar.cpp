@@ -33,6 +33,8 @@ bool AStar::Update()
 		if (pos == m_End.GetPosition()) {
 
 			ReconstructPath(curr);
+			ConstructOptimalPath();
+
 			return true;
 		}
 
@@ -55,6 +57,7 @@ bool AStar::Update()
 			neighbor.SetGCost(curr.GetGCost() + gCost);
 			neighbor.SetHCost(Heuristic(ny, nx));
 			parent[neighbor.GetPosition()] = curr;
+			GameMap[ny][nx] = VISIT;
 
 			openList.push(neighbor);
 			candidate++;
@@ -114,6 +117,7 @@ bool AStar::Update2()
 			else if (closeList.find(Hash(ny, nx)) != closeList.end()) continue;
 
 			Object neighbor(ny, nx);
+			GameMap[ny][nx] = VISIT;
 			float gCost = (i < 4) ? 1 : 1.4f; // 상하좌우는 1, 대각선은 1.4
 
 			neighbor.SetGCost(curr.GetGCost() + gCost);
@@ -211,7 +215,38 @@ void AStar::ReconstructPath(const Object& current)
 
 	// 경로를 역순으로 정렬 (시작점부터 종료점으로)
 	std::reverse(path.begin(), path.end());
+
 }
+
+void AStar::ConstructOptimalPath()
+{
+	if (path.size() == 0)
+		return;
+
+	optimal_path.push_back(path[0]); // 시작점을 추가
+
+	int s = 0;
+	for (int i = 1; i < path.size(); ++i) {
+		int e = i;
+
+		POSITION start = path[s].GetPosition();
+		POSITION end = path[e].GetPosition();
+
+		if (CheckLine(start.x, start.y, end.x, end.y, 40)) {
+			// 장애물이 없으면 경로에 계속 추가
+			continue;
+		}
+		else {
+			// 장애물이 있으면 이전까지의 경로를 최적화된 경로에 추가
+			optimal_path.push_back(path[e - 1]); // 장애물 전까지의 경로 추가
+			s = e - 1; // 장애물이 있는 곳에서 다시 시작
+		}
+	}
+
+	// 마지막 위치 추가
+	optimal_path.push_back(path[path.size() - 1]);
+}
+
 
 int AStar::Heuristic(int y, int x)
 {
@@ -240,4 +275,9 @@ void AStar::SetEnd(const Object& end)
 std::vector<Object>& AStar::GetPath()
 {
 	return path;
+}
+
+std::vector<Object>& AStar::GetOptimalPath()
+{
+	return optimal_path;
 }

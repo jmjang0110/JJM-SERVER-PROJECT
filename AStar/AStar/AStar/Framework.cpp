@@ -193,8 +193,8 @@ INT_PTR Framework::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 void Framework::InitAStar()
 { 
     // 시작 위치와 종료 위치 설정
-    int sy = 5, sx = 1;
-    int ey = 1, ex = 12;
+    int sy = 0, sx = 0;
+    int ey = 19, ex = 19;
 
     // A* 객체 생성
     Object start(sy, sx);
@@ -206,7 +206,7 @@ void Framework::InitAStar()
     static volatile long long time = 0;
 
     // 경로 탐색
-    if (m_Astar.Update2()) {
+    if (m_Astar.Update()) {
         std::cout << "경로를 찾았습니다.\n";
 
         // 경로를 찾았을 때, 단계별로 화면 갱신
@@ -241,14 +241,17 @@ void Framework::DrawGridMap()
             if (GameMap[y][x] == 1)
             {
                 // 1일 경우 채워진 사각형 그리기 (벽 표시)
-                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(150, 150, 150)); // 파란색
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(0, 0, 255));
             
             }
             else if (GameMap[y][x] == '*') 
             {
-                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(150, 200, 100)); // 빨간색
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(100, 250, 100)); 
             }
+            else if (GameMap[y][x] == VISIT) {
 
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(204,255, 255)); 
+            }
             else
             {
                 // 0일 경우 빈 사각형 그리기 (바닥 표시)
@@ -269,7 +272,14 @@ void Framework::MoveNPC(double deltaTime)
     static float y    = 75 + m_Astar.GetStart().GetPosition().y * 40; // 빨간색 원의 시작 위치
 
     // 경로가 비어 있으면, A* 경로를 계산하여 저장
+   
+#define OPTIMAL_A_STAR_PATH
+#ifdef OPTIMAL_A_STAR_PATH
+    std::vector<Object> path = m_Astar.GetOptimalPath(); // A* 경로를 얻음
+#else
     std::vector<Object> path = m_Astar.GetPath(); // A* 경로를 얻음
+#endif
+
     if (idx == path.size()) {
         x = 75 + m_Astar.GetStart().GetPosition().x * 40;
         y = 75 + m_Astar.GetStart().GetPosition().y * 40;
@@ -284,7 +294,7 @@ void Framework::MoveNPC(double deltaTime)
         float target_y = 70 + targetidx.y * 40;
 
         // 목표 지점으로 이동
-        float speed = 20.f; // 이동 속도
+        float speed = 10.f; // 이동 속도
         x = std::lerp(x, target_x, speed * deltaTime);
         y = std::lerp(y, target_y, speed * deltaTime);
 
