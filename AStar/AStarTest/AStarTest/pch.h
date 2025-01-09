@@ -10,3 +10,9 @@
 
 #include "Position.h"
 
+#include <DirectXMath.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory.h>
+#include <tchar.h>
+#include <SDKDDKVer.h>
