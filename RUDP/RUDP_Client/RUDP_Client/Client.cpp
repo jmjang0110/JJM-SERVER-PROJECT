@@ -26,6 +26,8 @@ void Client::Execute()
 {
     std::set<uint64_t> missedNums; // 중복을 방지하기 위해 set 사용
     uint64_t lastReceived = -1; // 마지막으로 수신한 패킷 번호, 초기값은 -1로 설정
+    const uint64_t endPacket = 19999; // 마지막 패킷 번호
+    auto startTime = std::chrono::high_resolution_clock::now(); // 시작 시간 기록
 
     while (true) {
         try {
@@ -47,8 +49,13 @@ void Client::Execute()
                 lastReceived = receivedData; // 마지막 수신된 패킷 업데이트
 
                 std::cout << "missed packet size : " << missedNums.size() << "\n";
+
+                // 19999번 패킷 수신 시 종료
+                if (receivedData == endPacket) {
+                    break;
+                }
+
                 // send 
-                
                 SendAckPacket();
             }
             else {
@@ -60,8 +67,10 @@ void Client::Execute()
             std::cerr << "Error receiving packet: " << e.what() << std::endl;
             break;
         }
-
     }
+
+    auto endTime = std::chrono::high_resolution_clock::now(); // 종료 시간 기록
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count(); // 밀리초 단위로 시간 계산
 
     std::cout << "Missed Packets: ";
     for (const auto& missed : missedNums) {
@@ -70,6 +79,8 @@ void Client::Execute()
     std::cout << std::endl;
 
     std::cout << "Receive thread has finished." << std::endl;
+
+    std::cout << "Time taken to receive 0 ~ 19999 packets: " << duration << " ms" << std::endl;
 }
 
 void Client::RecvNum(uint64_t data)
