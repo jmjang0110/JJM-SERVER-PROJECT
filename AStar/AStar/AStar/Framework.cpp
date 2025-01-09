@@ -98,7 +98,7 @@ void Framework::LoopLogic()
     swprintf_s(TimeText, L"Time: %.4f", m_Timer.GetAccumulatedTime());
     win32->DrawWText(POINT{10, 10}, TimeText);
 
-    win32->DrawPointColor(POINT{ 100, 100 }, 5, RGB(255,0, 0));
+    MoveNPC(deltaTime);
 
     // 렌더링 완료
     win32->Render_Present(m_Resolution[0], m_Resolution[1]);
@@ -200,21 +200,19 @@ void Framework::InitAStar()
     Object start(sy, sx);
     Object end(ey, ex);
 
-    AStar astar;
-    astar.SetStart(start);
-    astar.SetEnd(end);
+    m_Astar.SetStart(start);
+    m_Astar.SetEnd(end);
 
     static volatile long long time = 0;
 
     // 경로 탐색
-    if (astar.Update2()) {
+    if (m_Astar.Update2()) {
         std::cout << "경로를 찾았습니다.\n";
 
         // 경로를 찾았을 때, 단계별로 화면 갱신
-        for (auto& node : astar.GetPath()) {
+        for (auto& node : m_Astar.GetPath()) {
             POSITION pos = node.GetPosition();
             GameMap[pos.y][pos.x] = '*'; // '*'로 경로 표시
-
         }
     }
     else {
@@ -259,4 +257,44 @@ void Framework::DrawGridMap()
 
         }
     }
+}
+
+void Framework::MoveNPC(double deltaTime)
+{
+
+    // A* 경로를 따라 빨간색 원을 이동
+    static size_t idx = 0; // 현재 경로 노드 인덱스
+
+    static float x    = 75 + m_Astar.GetStart().GetPosition().x * 40;
+    static float y    = 75 + m_Astar.GetStart().GetPosition().y * 40; // 빨간색 원의 시작 위치
+
+    // 경로가 비어 있으면, A* 경로를 계산하여 저장
+    std::vector<Object> path = m_Astar.GetPath(); // A* 경로를 얻음
+    if (idx == path.size()) {
+        x = 75 + m_Astar.GetStart().GetPosition().x * 40;
+        y = 75 + m_Astar.GetStart().GetPosition().y * 40;
+        idx = 0;
+    }
+
+    // 경로를 따라 빨간색 원을 이동
+    if (!path.empty() && idx < path.size()) {
+        // 현재 위치와 목표 위치를 가져옴
+        POSITION targetidx = path[idx].GetPosition();
+        float target_x = 70 + targetidx.x * 40;
+        float target_y = 70 + targetidx.y * 40;
+
+        // 목표 지점으로 이동
+        float speed = 20.f; // 이동 속도
+        x = std::lerp(x, target_x, speed * deltaTime);
+        y = std::lerp(y, target_y, speed * deltaTime);
+
+        // 목표 지점에 도달하면 다음 노드로 이동
+        if (std::abs(x - target_x) < 0.1f && std::abs(y - target_y) < 0.1f) {
+            idx++;
+        }
+    }
+
+    // 경로를 따라 빨간색 원 그리기
+    Win32RenderMgr::GetInstance()->DrawPointColor(POINT{static_cast<int>(x), static_cast<int>(y)}, 5, RGB(255, 0, 0));
+
 }

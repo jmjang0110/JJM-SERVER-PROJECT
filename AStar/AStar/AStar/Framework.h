@@ -31,6 +31,7 @@ private:
 	void InitAStar();
 
 	void DrawGridMap();
+	void MoveNPC(double deltaTime);
 
 };
 
