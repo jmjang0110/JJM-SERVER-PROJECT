@@ -56,6 +56,7 @@ bool AStar::Update()
 
 			neighbor.SetGCost(curr.GetGCost() + gCost);
 			neighbor.SetHCost(Heuristic(ny, nx));
+
 			parent[neighbor.GetPosition()] = curr;
 			GameMap[ny][nx] = VISIT;
 

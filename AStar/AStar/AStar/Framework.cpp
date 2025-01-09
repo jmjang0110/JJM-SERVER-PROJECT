@@ -193,8 +193,17 @@ INT_PTR Framework::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 void Framework::InitAStar()
 { 
     // 시작 위치와 종료 위치 설정
+
+#ifdef V1
+    int sy = 5, sx = 1;
+    int ey = 2, ex = 12;
+
+#elif defined(V2)
     int sy = 0, sx = 0;
     int ey = 19, ex = 19;
+
+#endif
+
 
     // A* 객체 생성
     Object start(sy, sx);
