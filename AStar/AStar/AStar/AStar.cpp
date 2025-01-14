@@ -233,7 +233,7 @@ void AStar::ConstructOptimalPath()
 		POSITION start = path[s].GetPosition();
 		POSITION end = path[e].GetPosition();
 
-		if (CheckLine(start.x, start.y, end.x, end.y, 40)) {
+		if (CheckLine(start.x, start.y, end.x, end.y, CELL_SIZE)) {
 			// 장애물이 없으면 경로에 계속 추가
 			continue;
 		}

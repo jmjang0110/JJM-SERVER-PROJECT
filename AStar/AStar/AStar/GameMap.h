@@ -13,6 +13,8 @@ constexpr int HEIGHT = 20;
 
 #endif
 
+constexpr int CELL_SIZE = 40;
+
 constexpr int OBSTACLE = 1;
 constexpr int ROAD     = 0;
 constexpr int VISIT	   = 2;

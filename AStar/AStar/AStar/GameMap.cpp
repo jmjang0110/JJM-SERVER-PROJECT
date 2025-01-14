@@ -103,17 +103,16 @@ bool CheckLine(int x1, int y1, int x2, int y2, int cellsize) {
 		}
 	}
 	else {
-		// 기울기 m 계산
+		// 기울기 m 
 		float m = static_cast<float>(realY2 - realY1) / (realX2 - realX1);
 
-		// y 절편 b 계산
+		// y 절편 b 
 		float b = realY1 - m * realX1;
 
 		// 수평선이나 기울기가 있는 직선일 때
 		// X값을 픽셀 단위로 계산
 		for (int x = min(realX1, realX2); x <= max(realX1, realX2); ++x) {
-			// y값 계산 (부동소수점 계산 후 정수로 변환)
-			int y = static_cast<int>(m * x + b);
+			int y = static_cast<int>(m * x + b); // y값 계산 (부동소수점 계산 후 정수로 변환)
 
 			// X와 Y 값을 셀 좌표로 변환
 			int mapX = x / cellsize; // 맵의 x 좌표로 변환
@@ -127,7 +126,6 @@ bool CheckLine(int x1, int y1, int x2, int y2, int cellsize) {
 			}
 		}
 	}
-
 	return true; // 장애물이 없으면 true
 }
 

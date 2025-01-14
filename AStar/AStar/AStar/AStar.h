@@ -1,6 +1,11 @@
 #pragma once
 #include "Object.h"
 
+
+#define OPTIMAL_A_STAR_PATH
+
+
+
 class Object;
 class POSITION;
 class AStar

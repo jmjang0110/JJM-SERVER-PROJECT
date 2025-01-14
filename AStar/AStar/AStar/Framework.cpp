@@ -232,8 +232,7 @@ void Framework::InitAStar()
 void Framework::DrawGridMap()
 {
     // 맵 셀 크기
-    int cellWidth = 40;  // 셀의 너비
-    int cellHeight = 40; // 셀의 높이
+
 
     // 시작 지점 오프셋
     const int offsetX = 50; // X축 시작 위치
@@ -244,27 +243,27 @@ void Framework::DrawGridMap()
     {
         for (int x = 0; x < WIDTH; ++x)
         {
-            POINT topLeft = { offsetX + x * cellWidth, offsetY + y * cellHeight }; // 셀의 좌상단 좌표
+            POINT topLeft = { offsetX + x * CELL_SIZE, offsetY + y * CELL_SIZE }; // 셀의 좌상단 좌표
 
             // 셀 표시
             if (GameMap[y][x] == 1)
             {
                 // 1일 경우 채워진 사각형 그리기 (벽 표시)
-                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(0, 0, 255));
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, CELL_SIZE, CELL_SIZE, RGB(0, 0, 255));
             
             }
             else if (GameMap[y][x] == '*') 
             {
-                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(100, 250, 100)); 
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, CELL_SIZE, CELL_SIZE, RGB(100, 250, 100));
             }
             else if (GameMap[y][x] == VISIT) {
 
-                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, cellWidth, cellHeight, RGB(204,255, 255)); 
+                Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, CELL_SIZE, CELL_SIZE, RGB(204,255, 255));
             }
             else
             {
                 // 0일 경우 빈 사각형 그리기 (바닥 표시)
-                Win32RenderMgr::GetInstance()->DrawRectangle(topLeft, cellWidth, cellHeight);
+                Win32RenderMgr::GetInstance()->DrawRectangle(topLeft, CELL_SIZE, CELL_SIZE);
             }
 
         }
@@ -277,12 +276,11 @@ void Framework::MoveNPC(double deltaTime)
     // A* 경로를 따라 빨간색 원을 이동
     static size_t idx = 0; // 현재 경로 노드 인덱스
 
-    static float x    = 75 + m_Astar.GetStart().GetPosition().x * 40;
-    static float y    = 75 + m_Astar.GetStart().GetPosition().y * 40; // 빨간색 원의 시작 위치
+    static float x    = 75 + m_Astar.GetStart().GetPosition().x * CELL_SIZE;
+    static float y    = 75 + m_Astar.GetStart().GetPosition().y * CELL_SIZE; // 빨간색 원의 시작 위치
 
     // 경로가 비어 있으면, A* 경로를 계산하여 저장
    
-#define OPTIMAL_A_STAR_PATH
 #ifdef OPTIMAL_A_STAR_PATH
     std::vector<Object> path = m_Astar.GetOptimalPath(); // A* 경로를 얻음
 #else
@@ -290,8 +288,8 @@ void Framework::MoveNPC(double deltaTime)
 #endif
 
     if (idx == path.size()) {
-        x = 75 + m_Astar.GetStart().GetPosition().x * 40;
-        y = 75 + m_Astar.GetStart().GetPosition().y * 40;
+        x = 75 + m_Astar.GetStart().GetPosition().x * CELL_SIZE;
+        y = 75 + m_Astar.GetStart().GetPosition().y * CELL_SIZE;
         idx = 0;
     }
 
@@ -299,11 +297,17 @@ void Framework::MoveNPC(double deltaTime)
     if (!path.empty() && idx < path.size()) {
         // 현재 위치와 목표 위치를 가져옴
         POSITION targetidx = path[idx].GetPosition();
-        float target_x = 70 + targetidx.x * 40;
-        float target_y = 70 + targetidx.y * 40;
+        float target_x = 70 + targetidx.x * CELL_SIZE;
+        float target_y = 70 + targetidx.y * CELL_SIZE;
 
         // 목표 지점으로 이동
+
+#ifdef OPTIMAL_A_STAR_PATH
         float speed = 10.f; // 이동 속도
+#else
+        float speed = 30.f;
+#endif
+
         x = std::lerp(x, target_x, speed * deltaTime);
         y = std::lerp(y, target_y, speed * deltaTime);
 
@@ -312,6 +316,15 @@ void Framework::MoveNPC(double deltaTime)
             idx++;
         }
     }
+
+#ifdef OPTIMAL_A_STAR_PATH
+    // A* 경로를 따라 분홍색 사각형 그리기
+    for (auto& node : path) {
+        POSITION pos = node.GetPosition();
+        POINT topLeft = { 50 + pos.x * CELL_SIZE, 50 + pos.y * CELL_SIZE }; // 셀의 좌상단 좌표
+        Win32RenderMgr::GetInstance()->DrawFilledRectangle(topLeft, CELL_SIZE, CELL_SIZE, RGB(255, 192, 203)); // 분홍색 사각형
+    }
+#endif
 
     // 경로를 따라 빨간색 원 그리기
     Win32RenderMgr::GetInstance()->DrawPointColor(POINT{static_cast<int>(x), static_cast<int>(y)}, 5, RGB(255, 0, 0));
