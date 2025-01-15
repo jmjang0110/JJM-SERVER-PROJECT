@@ -13,6 +13,16 @@ ACK  SYN  FIN  SEQ  DATA
 
 */
 
+namespace PKT_TYPE {
+    constexpr char DATA    = '0';
+    constexpr char FIN     = '1';
+    constexpr char SYN     = '2';
+    constexpr char ACK     = '4';
+    constexpr char ACK_FIN = '5';
+    constexpr char SYN_ACK = '6';
+};
+
+
 struct dataPacket {
     char type;   // 패킷의 타입 (예: SYN, ACK 등)
     int seq;     // 시퀀스 번호
@@ -24,38 +34,10 @@ struct ackPacket {
     int seq;     // ACK의 시퀀스 번호
 };
 
-dataPacket Create_SYN_pkt(int seq_no) {
-    dataPacket pkt;
+dataPacket Create_SYN_pkt(int seq_no);
+dataPacket Create_DATA_pkt(int seq_no, long data);
+dataPacket Create_FIN_pkt(int seq_no);
 
-    // SYN 패킷의 type 값은 010 (2)로 설정
-    pkt.type = 0b010;
-    pkt.seq = seq_no;
-
-    pkt.data = 0; // data는 SYN 패킷에서 사용되지 않으므로 0으로 설정
-
-    return pkt;
-}
-
-dataPacket Create_DATA_pkt(int seq_no, long data) {
-    dataPacket pkt;
-
-    // DATA 패킷의 type 값은 000 (0)으로 설정
-    pkt.type = 0b000;
-    pkt.seq = seq_no;
-
-    pkt.data = data; // data 값 설정
-
-    return pkt;
-}
-
-dataPacket Create_FIN_pkt(int seq_no) {
-    dataPacket pkt;
-
-    // FIN 패킷의 type 값은 001 (1)로 설정
-    pkt.type = 0b001;
-    pkt.seq = seq_no;
-
-    pkt.data = 0; // data는 FIN 패킷에서 사용되지 않으므로 0으로 설정
-
-    return pkt;
-}
+ackPacket Create_SYN_ACK_pkt(int seq_no);
+ackPacket Create_DATA_ACK_pkt(int seq_no);
+ackPacket Create_FIN_ACK_pkt(int seq_no);

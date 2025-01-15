@@ -1,5 +1,9 @@
 #include "pch.h"
 #include "Client.h"
+#include "Common/Packet.h"
+
+
+
 
 bool Client::Init()
 {
@@ -108,6 +112,9 @@ void Client::wait_and_stop()
     std::cout << "Time taken to receive 0 ~ 19999 packets: " << duration << " ms" << std::endl;
 }
 
+
+#include <chrono> // Include the chrono header for time tracking
+
 void Client::go_back_N_ARQ()
 {
     if (!m_UDPsocket.NonBlockMode()) {
@@ -115,5 +122,102 @@ void Client::go_back_N_ARQ()
         return;
     }
 
+    dataPacket dataPkt;
+    ackPacket  ackPkt;
 
+    sockaddr_in peerInfo;
+    sockaddr_in peer = m_UDPsocket.Peer(SERVER_IP, SERVER_PORT);
+
+    int status{};
+    int seq = 0;
+    int wait_seq = 0;
+    int synFlag = 0;
+    int finFlag = 0;
+    int wait_time = 0;
+
+    bool loopflag = 1;
+
+    // Start measuring time
+    auto start_time = std::chrono::steady_clock::now();
+
+    while (loopflag) {
+
+        /************* Á¾·á ************/
+        if (finFlag == 1) {
+            wait_time++;
+            if (wait_time > 1000) {
+                std::cout << "Closed ! time Up \n";
+                loopflag = 0;
+            }
+        }
+
+        status = m_UDPsocket.RecvFrom();
+        if (status < 0) {
+
+        }
+        else {
+            std::memcpy(&dataPkt, m_UDPsocket.GetRecvBuf(), sizeof(dataPkt));
+
+            /************* SYN ************/
+            if (dataPkt.type == PKT_TYPE::SYN && dataPkt.seq == 0) {
+
+                std::string peer_ip_port = m_UDPsocket.GetPeerIPandPort(peerInfo);
+                std::cout << "Connection Request Received From " << peer_ip_port << "\n";
+                ackPkt = Create_SYN_ACK_pkt(seq);
+                seq = dataPkt.seq;
+                wait_seq = seq + 1;
+
+                std::cout << "Send ACK with SEQ : " << seq << " Expecting SEQ : " << wait_seq << "\n";
+                m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                synFlag = 1;
+            }
+
+            /************* DATA ************/
+            else if (dataPkt.type == PKT_TYPE::DATA && dataPkt.seq > 0 && synFlag == 1) {
+
+                if (dataPkt.seq == wait_seq) {
+                    wait_seq++;
+                    seq = dataPkt.seq;
+
+                    ackPkt = Create_DATA_ACK_pkt(seq);
+                    std::cout << "Received data : " << dataPkt.data << "\n";
+                    std::cout << "send ACK with seq  " << seq << " expecting seq : " << wait_seq << "\n";
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+
+                }
+                else {
+                    std::cout << "out of order seq : " << dataPkt.seq << "\n";
+                    std::cout << "send ACK with seq : " << wait_seq - 1 << "\n";
+                    ackPkt = Create_DATA_ACK_pkt(wait_seq - 1);
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                }
+
+            }
+
+            /************* FIN ************/
+            else if (dataPkt.type == PKT_TYPE::FIN && synFlag == 1) {
+                ackPkt = Create_FIN_ACK_pkt(dataPkt.seq);
+
+                if (finFlag == 0) {
+                    std::cout << "Sender is terminating with FIN...\n ";
+                    std::cout << "Send ACK with seq : " << dataPkt.seq << "\n";
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                }
+                else if (finFlag == 1) {
+                    std::cout << "Sender is terminating with FIN... \n";
+                    std::cout << "sending ACK with SEQ : " << dataPkt.seq << "\n";
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                }
+
+                finFlag = 1;
+            }
+        }
+    }
+
+    // Stop measuring time
+    auto end_time = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+
+    // Output elapsed time
+    std::cout << "Total time taken: " << elapsed_seconds.count() << " seconds\n";
 }

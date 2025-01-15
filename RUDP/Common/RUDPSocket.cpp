@@ -63,6 +63,8 @@ int RUDPSocket::RecvFrom()
 
     if (result == SOCKET_ERROR) {
         int errCode = WSAGetLastError();
+        if (errCode == WSAEWOULDBLOCK)
+            return -1;
         std::string errorMsg = "Failed to receive data via UDP. Error Code: " + std::to_string(errCode);
         throw std::exception(errorMsg.c_str());
     }

@@ -20,3 +20,5 @@ const std::string CLIENT_IP = "172.30.1.97";
 const std::string SERVER_IP = "127.0.0.1";
 const std::string CLIENT_IP = "127.0.0.1";
 #endif
+
+#define WINDOW_SIZE 5
