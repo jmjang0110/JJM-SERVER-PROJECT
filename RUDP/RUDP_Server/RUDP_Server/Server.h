@@ -3,18 +3,11 @@
 class Server
 {
 private:
-	RUDPSocket m_UDPsocket;
+	RUDPSocket	m_UDPsocket;
 	std::thread m_SendThread;
-	std::thread m_RecvACKThread;
+	bool		m_SendThreadLoop = true;
 
-	bool m_SendThreadLoop = true;
-
-	RUDPSocket m_peerSocket;
-
-	/* go - back - N - ARQ */
-	static std::atomic<int> m_window_base_idx;
-	static std::atomic<uint64_t> m_data;
-	static std::atomic<std::chrono::steady_clock::time_point> m_lastSendTime;
+	RUDPSocket	m_peerSocket;
 
 public:
 	bool Init();
@@ -23,8 +16,6 @@ public:
 
 private:
 	static void SendThread_wait_and_stop(RUDPSocket& socket);
-	static void SendThread_go_back_N_ARQ(RUDPSocket& socket);
-	static void RecvThread_go_back_N_ARQ(RUDPSocket& socket);
 
 
 private:

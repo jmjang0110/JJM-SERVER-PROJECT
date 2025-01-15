@@ -16,7 +16,6 @@ public:
 private:
 	void RecvNum(uint64_t data);
 	void SendAckPacket();
-	void SendAckPacket_go_Back_N_ARQ(uint64_t data);
 
 private:
 	void wait_and_stop();

@@ -24,10 +24,10 @@ void Client::Exit()
 
 void Client::Execute()
 {
-    wait_and_stop();
+    //wait_and_stop();
 
 
-    //go_back_N_ARQ();
+    go_back_N_ARQ();
 
 
 }
@@ -44,13 +44,6 @@ void Client::SendAckPacket()
 
     sockaddr_in peer = m_UDPsocket.Peer(SERVER_IP, SERVER_PORT);
     bool ack = true;
-    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ack), sizeof(ack), peer);
-}
-
-void Client::SendAckPacket_go_Back_N_ARQ(uint64_t data)
-{
-    sockaddr_in peer = m_UDPsocket.Peer(SERVER_IP, SERVER_PORT);
-    uint64_t ack = data;
     m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ack), sizeof(ack), peer);
 }
 
@@ -117,64 +110,10 @@ void Client::wait_and_stop()
 
 void Client::go_back_N_ARQ()
 {
-    constexpr int WINDOW_SIZE = 50; // 윈도우 크기
-    uint64_t max_num = 20'000; // 수신할 최대 패킷 수
-    uint64_t expected_packet_idx = 0; // 예상되는 패킷 번호
-    std::atomic<int> window_base_idx = 0; // 윈도우의 시작 인덱스
-    std::vector<uint64_t> window(WINDOW_SIZE, 0); // 윈도우에 들어갈 데이터 저장용 벡터
-
-    sockaddr_in server = m_UDPsocket.Peer(SERVER_IP, SERVER_PORT); // 서버 주소 설정
-    auto lastsendtime = std::chrono::steady_clock::now(); // 마지막 전송 시간 초기화
-
-    auto start_time = std::chrono::steady_clock::now(); // 실행 시작 시간 기록
-
-    while (expected_packet_idx < max_num) {
-        // 1. 서버로부터 패킷 수신
-        int receivedSize = m_UDPsocket.RecvFrom();
-        if (receivedSize > 0) {
-            uint64_t packet_data = 0;
-            std::memcpy(&packet_data, m_UDPsocket.GetRecvBuf(), sizeof(packet_data));
-
-            // 2. 수신한 패킷이 예상되는 번호와 일치하면 ACK 전송
-            if (packet_data == expected_packet_idx) {
-                std::cout << "수신한 패킷 번호: " << packet_data << "\n";
-
-                // ACK 전송
-                SendAckPacket_go_Back_N_ARQ(packet_data);
-                lastsendtime = std::chrono::steady_clock::now(); // 마지막 전송 시간 갱신
-
-                // 윈도우 내의 패킷 번호 업데이트
-                window[packet_data % WINDOW_SIZE] = packet_data;
-                expected_packet_idx++;
-
-                // 윈도우 베이스 이동
-                while (window[window_base_idx % WINDOW_SIZE] == window_base_idx) {
-                    window[window_base_idx % WINDOW_SIZE] = 0; // ACK 처리된 슬롯 초기화
-                    window_base_idx++;
-                }
-            }
-            else {
-                std::cout << "잘못된 패킷 번호 수신: " << packet_data << "\n";
-            }
-        }
-
-        // 3. 타임아웃 체크 및 재전송 요청
-        auto now = std::chrono::steady_clock::now();
-        if (now - lastsendtime >= std::chrono::milliseconds(600)) {
-            for (int i = 0; i < WINDOW_SIZE; ++i) {
-                uint64_t packet_data = window[(window_base_idx + i) % WINDOW_SIZE];
-                if (packet_data == 0) continue; // ACK 처리된 패킷은 건너뛰기
-                m_UDPsocket.RegisterSend(reinterpret_cast<std::byte*>(&packet_data), sizeof(packet_data), server);
-                std::cout << "재전송 요청: " << packet_data << "\n";
-            }
-            lastsendtime = now; // 타임아웃 시간 초기화
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 잠시 대기 후 다시 확인
+    if (!m_UDPsocket.NonBlockMode()) {
+        std::cout << "UDP Socket Nonbock Mode Failed \n";
+        return;
     }
 
-    // 4. 소요 시간 출력
-    auto end_time = std::chrono::steady_clock::now(); // 실행 종료 시간 기록
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    std::cout << "클라이언트 go_back_N_ARQ 완료. 소요 시간: " << duration << "ms\n";
+
 }

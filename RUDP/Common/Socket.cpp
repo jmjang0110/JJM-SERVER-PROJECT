@@ -1,5 +1,6 @@
 #include "Socket.h"
 #include <iostream>
+#include <fcntl.h>
 
 Socket::Socket(ProtocolType type)
 {
@@ -121,4 +122,18 @@ void Socket::PrintIPansPort()
 bool Socket::IsValid()
 {
 	return m_SocketHandle != INVALID_SOCKET;
+}
+
+bool Socket::NonBlockMode()
+{
+	if (!IsValid()) {
+		return false;
+	}
+
+	u_long mode = 1; // 1이면 넌블록 모드, 0이면 블록 모드
+	if (ioctlsocket(m_SocketHandle, FIONBIO, &mode) != 0) {
+		return false; 
+	}
+
+	return true; 
 }
