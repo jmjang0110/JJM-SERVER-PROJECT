@@ -29,21 +29,21 @@ dataPacket Create_SYN_pkt(int seq_no) {
 
     // SYN 패킷의 type 값은 010 (2)로 설정
     pkt.type = 0b010;
-    pkt.seq = seq_no; 
+    pkt.seq = seq_no;
 
     pkt.data = 0; // data는 SYN 패킷에서 사용되지 않으므로 0으로 설정
 
     return pkt;
 }
 
-dataPacket Create_DATA_pkt(int seq_no, long* data) {
+dataPacket Create_DATA_pkt(int seq_no, long data) {
     dataPacket pkt;
 
     // DATA 패킷의 type 값은 000 (0)으로 설정
     pkt.type = 0b000;
     pkt.seq = seq_no;
 
-    pkt.data = *data; // 전달받은 data 값을 설정
+    pkt.data = data; // data 값 설정
 
     return pkt;
 }
@@ -54,7 +54,7 @@ dataPacket Create_FIN_pkt(int seq_no) {
     // FIN 패킷의 type 값은 001 (1)로 설정
     pkt.type = 0b001;
     pkt.seq = seq_no;
-    
+
     pkt.data = 0; // data는 FIN 패킷에서 사용되지 않으므로 0으로 설정
 
     return pkt;
