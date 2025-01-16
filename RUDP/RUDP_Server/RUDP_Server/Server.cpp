@@ -101,13 +101,12 @@ void Server::wait_ans_stop()
 
 
 namespace STATE_TYPE {
-    constexpr int handShake = 1;
+    constexpr int handShake  = 1;
     constexpr int recvSynpkt = 2;
-    constexpr int sendData = 3;
-    constexpr int requestFIN = 4;
+    constexpr int recvAckPkt = 3;
+    constexpr int sendData   = 4;
+    constexpr int requestFIN = 5;
 };
-
-#include <chrono>
 
 void Server::go_back_N_ARQ()
 {
@@ -128,7 +127,7 @@ void Server::go_back_N_ARQ()
 
     int curSeq = 0; // 현재 시퀀스 번호
     int curAck = 0; // 현재 ACK 번호
-    int lastSeq = 20'000;
+    int lastSeq = 20'000 - 1;
     int windowbase = 0;
 
     // 시간 초과를 위한 chrono
@@ -148,7 +147,7 @@ void Server::go_back_N_ARQ()
             state = STATE_TYPE::recvSynpkt;
 
         }
-                                  break;
+        break;
 
         case STATE_TYPE::recvSynpkt: {
 
@@ -166,14 +165,34 @@ void Server::go_back_N_ARQ()
                 std::memcpy(&ackPkt, m_UDPsocket.GetRecvBuf(), sizeof(ackPkt));
                 if (ackPkt.seq == 0 && ackPkt.type == PKT_TYPE::SYN_ACK) {
                     lastTime = std::chrono::steady_clock::now(); // 성공적인 ACK 수신 시 타이머 리셋
+                    state = STATE_TYPE::recvAckPkt;
+                }
+            }
+        }
+        break;
+
+        case STATE_TYPE::recvAckPkt: {
+            recvResult = m_UDPsocket.RecvFrom();
+            if (recvResult < 0) {
+                // 시간이 지났는지 체크
+                auto now = std::chrono::steady_clock::now();
+                if (now - lastTime > timeout_ms) {
+                    std::cout << "ACK - Time Out...\n";
+                    lastTime = now; // 타임아웃 이후 시간을 갱신
+                    state = STATE_TYPE::handShake; // 핸드셰이크 재시도 
+                }
+            }
+            else {
+                std::memcpy(&ackPkt, m_UDPsocket.GetRecvBuf(), sizeof(ackPkt));
+                if (ackPkt.seq == 0 && ackPkt.type == PKT_TYPE::ACK) {
+                    lastTime = std::chrono::steady_clock::now(); // 성공적인 ACK 수신 시 타이머 리셋
                     curSeq = 1;
                     curAck = 1;
                     state = STATE_TYPE::sendData;
                 }
             }
         }
-                                   break;
-
+        break;
         case STATE_TYPE::sendData: {
 
             // 윈도우 내 전송되지 않은 패킷 전송 
@@ -191,7 +210,7 @@ void Server::go_back_N_ARQ()
                 if (now - lastTime > timeout_ms) {
                     std::cout << "Window Time out...\n";
                     lastTime = now; // 타임아웃 이후 시간을 갱신
-                    //curSeq = curAck; // (선택 사항) 시퀀스를 재설정
+                    curSeq = curAck; // 시퀀스를 재설정
                 }
             }
             else {
@@ -213,7 +232,7 @@ void Server::go_back_N_ARQ()
             }
 
         }
-                                 break;
+        break;
         case STATE_TYPE::requestFIN: {
 
             recvResult = m_UDPsocket.RecvFrom();
@@ -227,6 +246,7 @@ void Server::go_back_N_ARQ()
                     std::cout << "Terminate Connection... (Send FIN)\n";
                     m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&dataPkt), sizeof(dataPkt), peer);
                 }
+                
             }
             else {
                 std::memcpy(&ackPkt, m_UDPsocket.GetRecvBuf(), sizeof(ackPkt));
@@ -236,7 +256,7 @@ void Server::go_back_N_ARQ()
                 }
             }
         }
-                                   break;
+        break;
 
         default:
             break;

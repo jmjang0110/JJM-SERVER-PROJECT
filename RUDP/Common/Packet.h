@@ -38,6 +38,7 @@ dataPacket Create_SYN_pkt(int seq_no);
 dataPacket Create_DATA_pkt(int seq_no, long data);
 dataPacket Create_FIN_pkt(int seq_no);
 
+ackPacket Create_ACK_pkt(int seq_no);
 ackPacket Create_SYN_ACK_pkt(int seq_no);
 ackPacket Create_DATA_ACK_pkt(int seq_no);
 ackPacket Create_FIN_ACK_pkt(int seq_no);

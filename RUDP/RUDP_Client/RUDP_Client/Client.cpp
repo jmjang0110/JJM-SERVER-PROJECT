@@ -28,10 +28,10 @@ void Client::Exit()
 
 void Client::Execute()
 {
-    //wait_and_stop();
+    wait_and_stop();
 
 
-    go_back_N_ARQ();
+    //go_back_N_ARQ();
 
 
 }
@@ -164,6 +164,19 @@ void Client::go_back_N_ARQ()
                 std::string peer_ip_port = m_UDPsocket.GetPeerIPandPort(peerInfo);
                 std::cout << "Connection Request Received From " << peer_ip_port << "\n";
                 ackPkt = Create_SYN_ACK_pkt(seq);
+                seq = dataPkt.seq;
+                wait_seq = seq + 1;
+
+                std::cout << "Send ACK with SEQ : " << seq << " Expecting SEQ : " << wait_seq << "\n";
+                m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                synFlag = 1;
+            }
+
+            else if (dataPkt.type == PKT_TYPE::ACK && dataPkt.seq == 0) {
+
+                std::string peer_ip_port = m_UDPsocket.GetPeerIPandPort(peerInfo);
+                std::cout << "Connection Request Received From " << peer_ip_port << "\n";
+                ackPkt = Create_ACK_pkt(seq);
                 seq = dataPkt.seq;
                 wait_seq = seq + 1;
 

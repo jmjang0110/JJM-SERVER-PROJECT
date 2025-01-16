@@ -15,6 +15,8 @@ dataPacket Create_SYN_pkt(int seq_no) {
 }
 
 
+
+
 dataPacket Create_DATA_pkt(int seq_no, long data) {
     dataPacket pkt;
 
@@ -35,6 +37,17 @@ dataPacket Create_FIN_pkt(int seq_no) {
     pkt.seq = seq_no;
 
     pkt.data = 0; // data는 FIN 패킷에서 사용되지 않으므로 0으로 설정
+
+    return pkt;
+}
+
+ackPacket Create_ACK_pkt(int seq_no)
+{
+    ackPacket pkt;
+
+    // ACK 패킷의 type 값은 010 (2)로 설정
+    pkt.type = PKT_TYPE::ACK;
+    pkt.seq = seq_no;
 
     return pkt;
 }
