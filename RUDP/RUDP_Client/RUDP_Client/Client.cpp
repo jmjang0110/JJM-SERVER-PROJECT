@@ -325,7 +325,7 @@ void Client::UDP_HolePunching()
 					auto pkt = Create_UDPhpc_Pkt(remote_endpoint, '1');
 					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&pkt), sizeof(pkt), peer);
 
-					auto synpkt = Create_SYN_pkt(0);
+					auto synpkt = Create_P2Pack_Pkt();
 					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&synpkt), sizeof(synpkt), remote_endpoint);
 					
 					state = STATE_TYPE::waitForSynAck; // 상대 클라이언트와 핸드쉐이크
@@ -349,13 +349,43 @@ void Client::UDP_HolePunching()
 				}
 			}
 			else {
-
+				// P2P_ACK 수신 대기
+				std::memcpy(&header, m_UDPsocket.GetRecvBuf(), sizeof(header));
+				if (header.type == PKT_TYPE::P2P_ACK) {
+					std::cout << "P2P_ACK Received from " << m_UDPsocket.GetPeerIPandPort(remote_endpoint) << "\n";
+					state = STATE_TYPE::sendData;
+				}
 			}
 		}
 		break;
 		case STATE_TYPE::sendData:
 		{
+			recvResult = m_UDPsocket.RecvFrom();
+			if (recvResult < 0) {
+			}
+			else {
+				// P2P_ACK 수신 대기
+				std::memcpy(&header, m_UDPsocket.GetRecvBuf(), sizeof(header));
+				if (header.type == PKT_TYPE::P2P_DATA) {
+					P2PDataPacket pkt;
 
+					std::memcpy(&pkt, m_UDPsocket.GetRecvBuf(), sizeof(pkt));
+					std::cout << "P2P_DATA Received from " << m_UDPsocket.GetPeerIPandPort(remote_endpoint) << " : " << pkt.data << "\n";
+				}
+			}
+
+			auto now = std::chrono::steady_clock::now();
+			static auto lastSendTime = std::chrono::steady_clock::now();  // Keeps track of last send time
+			std::chrono::milliseconds interval(3000);  // 3 seconds
+
+			if (now - lastSendTime >= interval) {
+				char str[20] = "Hello I'm P1";
+				P2PDataPacket data_pkt = CreateP2Pdata_Pkt(str);
+				m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&data_pkt), sizeof(data_pkt), remote_endpoint);
+
+				std::cout << "Sent P2P Data: " << str << "\n";
+				lastSendTime = now; 
+			}
 		}
 		break;
 		case STATE_TYPE::requestFIN:
