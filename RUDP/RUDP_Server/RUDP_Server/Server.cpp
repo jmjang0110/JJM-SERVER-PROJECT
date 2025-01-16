@@ -256,6 +256,7 @@ void Server::UDP_HolePunching()
 
     PacketHeader header;
     ackPacket ackPkt;
+    UDPholePunchingPacket hpcPkt;
 
     int status{};
     int seq = 0;
@@ -267,7 +268,6 @@ void Server::UDP_HolePunching()
 
     bool loopflag = 1;
     while (loopflag) {
-
         /************* Á¾·á ************/
         if (finFlag == 1) {
             wait_time++;
@@ -276,6 +276,8 @@ void Server::UDP_HolePunching()
                 loopflag = 0;
             }
         }
+
+        m_sessionRoom->Hole_Punching(m_UDPsocket);
 
         status = m_UDPsocket.RecvFrom();
         if (status < 0) {
@@ -305,11 +307,14 @@ void Server::UDP_HolePunching()
                 std::cout << "ESTABLISHED : " << peer_info << "\n";
             }
 
-            /************* DATA ************/
+            /************* HOLE_PUNCING ************/
             else if (header.type == PKT_TYPE::HOLE_PUNCING && header.seq == 0) {
                 auto peer = m_UDPsocket.GetRecentPeer();
+                std::memcpy(&hpcPkt, m_UDPsocket.GetRecvBuf(), sizeof(hpcPkt));
 
-               
+                if (hpcPkt.get_peer_success_Ack == '1') {
+                    m_sessionRoom->Hole_punching_Ready_Ack(m_UDPsocket.GetRecentPeer());
+               }
 
             }
 

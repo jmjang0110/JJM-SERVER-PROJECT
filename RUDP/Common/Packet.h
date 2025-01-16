@@ -58,3 +58,5 @@ ackPacket Create_ACK_pkt(int seq_no);
 ackPacket Create_SYN_ACK_pkt(int seq_no);
 ackPacket Create_DATA_ACK_pkt(int seq_no);
 ackPacket Create_FIN_ACK_pkt(int seq_no);
+
+UDPholePunchingPacket Create_UDPhpc_Pkt(sockaddr_in peer, char ack);

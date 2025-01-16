@@ -12,7 +12,7 @@ bool Client::Init()
 		throw std::exception("Failed WSAStartup.");
 	}
 
-	m_UDPsocket.Bind(CLIENT_PORT, CLIENT_IP);
+	m_UDPsocket.Bind(CLIENT_PORT, SERVER_IP);
 	std::cout << "------------- UDP SOCKET IP, Port -------------\n";
 	m_UDPsocket.PrintIPansPort();
 	std::cout << "-----------------------------------------------\n";
@@ -244,7 +244,10 @@ void Client::UDP_HolePunching()
 		return;
 	}
 
+	PacketHeader header;
 	UDPholePunchingPacket hpcPkt;
+	sockaddr_in remote_endpoint;
+
 
 	dataPacket dataPkt; // 데이터 패킷 구조체
 	ackPacket  ackPkt;  // ACK 패킷 구조체
@@ -295,14 +298,63 @@ void Client::UDP_HolePunching()
 
 					ackPkt = Create_ACK_pkt(0);
 					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
-					state = STATE_TYPE::sendData;
+					state = STATE_TYPE::holepunching;
 				}
+			}
+		}
+		break;
+		case STATE_TYPE::holepunching:
+		{
+			recvResult = m_UDPsocket.RecvFrom();
+			if (recvResult < 0) {
+				// 시간이 지났는지 체크
+				auto now = std::chrono::steady_clock::now();
+				if (now - lastTime > timeout_ms) {
+					std::cout << "holepunching - Time Out...\n";
+					lastTime = now; // 타임아웃 이후 시간을 갱신
+				}
+			}
+			else {
+				std::memcpy(&header, m_UDPsocket.GetRecvBuf(), sizeof(header));
+				if (header.seq == 0 && header.type == PKT_TYPE::HOLE_PUNCING) {
+					lastTime = std::chrono::steady_clock::now(); // 성공적인 ACK 수신 시 타이머 리셋
+					std::memcpy(&hpcPkt, m_UDPsocket.GetRecvBuf(), sizeof(hpcPkt));
+
+					remote_endpoint = hpcPkt.peer_end_point;
+
+					auto pkt = Create_UDPhpc_Pkt(remote_endpoint, '1');
+					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&pkt), sizeof(pkt), peer);
+
+					auto synpkt = Create_SYN_pkt(0);
+					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&synpkt), sizeof(synpkt), remote_endpoint);
+					
+					state = STATE_TYPE::waitForSynAck; // 상대 클라이언트와 핸드쉐이크
+
+				}
+			}
+
+		}
+		break;
+		case STATE_TYPE::waitForSynAck:
+		{
+			recvResult = m_UDPsocket.RecvFrom();
+			if (recvResult < 0) {
+				// 시간이 지났는지 체크
+				auto now = std::chrono::steady_clock::now();
+				if (now - lastTime > timeout_ms) {
+					std::cout << "SYN - Time Out...\n";
+					lastTime = now; // 타임아웃 이후 시간을 갱신
+					auto synpkt = Create_SYN_pkt(0);
+					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&synpkt), sizeof(synpkt), remote_endpoint);
+				}
+			}
+			else {
+
 			}
 		}
 		break;
 		case STATE_TYPE::sendData:
 		{
-			
 
 		}
 		break;

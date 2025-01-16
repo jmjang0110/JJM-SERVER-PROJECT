@@ -79,3 +79,13 @@ ackPacket Create_FIN_ACK_pkt(int seq_no)
 
     return pkt;
 }
+
+UDPholePunchingPacket Create_UDPhpc_Pkt(sockaddr_in peer, char ack)
+{
+    UDPholePunchingPacket pkt;
+
+    pkt.peer_end_point = peer;
+    pkt.get_peer_success_Ack = ack;
+
+    return pkt;
+}
