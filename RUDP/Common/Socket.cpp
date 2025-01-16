@@ -110,7 +110,18 @@ std::string Socket::GetPeerIPandPort(const sockaddr_in& addr)
 
 	u_short port = ntohs(addr.sin_port);
 
-	return std::string(ipStr) + ":" + std::to_string(port);
+	std::string peer_info = std::string(ipStr) + ":" + std::to_string(port);
+
+#define SAFE_MODE
+#ifdef SAFE_MODE
+	// peer_info에 있는 모든 숫자를 *로 바꾸기
+	for (char& c : peer_info) {
+		if (isdigit(c)) {
+			c = '*';
+		}
+	}
+#endif
+	return peer_info;
 }
 
 void Socket::PrintIPansPort()
