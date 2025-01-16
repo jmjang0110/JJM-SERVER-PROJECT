@@ -26,6 +26,8 @@ namespace PKT_TYPE {
     constexpr char SYN_ACK = '6';
 
     constexpr char HOLE_PUNCING = '7';
+    constexpr char P2P_ACK = '8';
+    constexpr char P2P_DATA = '9';
 };
 
 
@@ -50,6 +52,14 @@ struct UDPholePunchingPacket : public PacketHeader{
     char get_peer_success_Ack;
 };
 
+struct P2PackPacket : public PacketHeader {
+
+};
+
+struct P2PDataPacket : public PacketHeader {
+    char data[20];
+};
+
 dataPacket Create_SYN_pkt(int seq_no);
 dataPacket Create_DATA_pkt(int seq_no, long data);
 dataPacket Create_FIN_pkt(int seq_no);
@@ -60,3 +70,5 @@ ackPacket Create_DATA_ACK_pkt(int seq_no);
 ackPacket Create_FIN_ACK_pkt(int seq_no);
 
 UDPholePunchingPacket Create_UDPhpc_Pkt(sockaddr_in peer, char ack);
+P2PackPacket Create_P2Pack_Pkt();
+P2PDataPacket CreateP2Pdata_Pkt(char str[20]);

@@ -1,6 +1,7 @@
 #include "Packet.h"
 
-
+#include <iostream>
+#include <string>
 
 dataPacket Create_SYN_pkt(int seq_no) {
     dataPacket pkt;
@@ -84,8 +85,33 @@ UDPholePunchingPacket Create_UDPhpc_Pkt(sockaddr_in peer, char ack)
 {
     UDPholePunchingPacket pkt;
 
+    pkt.type = PKT_TYPE::HOLE_PUNCING;
+    pkt.seq = 0;
+
     pkt.peer_end_point = peer;
     pkt.get_peer_success_Ack = ack;
+
+    return pkt;
+}
+
+P2PackPacket Create_P2Pack_Pkt()
+{
+    P2PackPacket pkt;
+
+    pkt.type = PKT_TYPE::P2P_ACK;
+    pkt.seq = 0;
+
+    return pkt;
+}
+
+P2PDataPacket CreateP2Pdata_Pkt(char str[20])
+{
+    P2PDataPacket pkt;
+
+    pkt.type = PKT_TYPE::P2P_DATA;
+    pkt.seq = 0;
+
+    std::memcpy(pkt.data, str, 20);
 
     return pkt;
 }

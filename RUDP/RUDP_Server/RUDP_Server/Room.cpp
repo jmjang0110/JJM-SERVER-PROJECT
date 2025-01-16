@@ -11,8 +11,7 @@ bool Room::Hole_Punching(RUDPSocket& socket)
 	auto currentTime = std::chrono::steady_clock::now();
 	auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastExecutionTime);
 
-	// 600ms가 경과하지 않았다면 바로 반환
-	if (elapsedTime.count() < 600) {
+	if (elapsedTime.count() < 2000) {
 		return false;
 	}
 
@@ -21,12 +20,12 @@ bool Room::Hole_Punching(RUDPSocket& socket)
 
 	if (m_sessions[1].ready_to_holepunching == false) {
 		auto to_0 = Create_UDPhpc_Pkt(m_sessions[1].peer, '0');
-		socket.SendTo(reinterpret_cast<std::byte*>(&to_0), sizeof(to_0), m_sessions[1].peer);
+		socket.SendTo(reinterpret_cast<std::byte*>(&to_0), sizeof(to_0), m_sessions[0].peer);
 	}
 	
 	if (m_sessions[0].ready_to_holepunching == false) {
 		auto to_1 = Create_UDPhpc_Pkt(m_sessions[0].peer, '0');
-		socket.SendTo(reinterpret_cast<std::byte*>(&to_1), sizeof(to_1), m_sessions[0].peer);
+		socket.SendTo(reinterpret_cast<std::byte*>(&to_1), sizeof(to_1), m_sessions[1].peer);
 	}
 
 	

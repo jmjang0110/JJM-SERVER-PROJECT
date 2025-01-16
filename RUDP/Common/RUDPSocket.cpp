@@ -46,6 +46,9 @@ void RUDPSocket::SendTo(std::byte* buf, size_t len, sockaddr_in& to) {
 
     if (result == SOCKET_ERROR) {
         int errCode = WSAGetLastError();  
+        if (errCode == WSAEWOULDBLOCK) {
+            return;
+        }
         std::string errorMsg = "Failed to send data via UDP. Error Code: " + std::to_string(errCode);
         throw std::exception(errorMsg.c_str());
     }

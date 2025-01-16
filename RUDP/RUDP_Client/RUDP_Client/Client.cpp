@@ -342,7 +342,7 @@ void Client::UDP_HolePunching()
 				// 시간이 지났는지 체크
 				auto now = std::chrono::steady_clock::now();
 				if (now - lastTime > timeout_ms) {
-					std::cout << "SYN - Time Out...\n";
+					std::cout << m_UDPsocket.GetPeerIPandPort(remote_endpoint) << " - SYN - Time Out...\n";
 					lastTime = now; // 타임아웃 이후 시간을 갱신
 					auto synpkt = Create_SYN_pkt(0);
 					m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&synpkt), sizeof(synpkt), remote_endpoint);
