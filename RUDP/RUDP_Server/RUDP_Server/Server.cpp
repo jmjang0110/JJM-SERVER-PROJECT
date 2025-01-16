@@ -103,9 +103,8 @@ void Server::wait_ans_stop()
 namespace STATE_TYPE {
     constexpr int handShake  = 1;
     constexpr int recvSynpkt = 2;
-    constexpr int recvAckPkt = 3;
-    constexpr int sendData   = 4;
-    constexpr int requestFIN = 5;
+    constexpr int sendData   = 3;
+    constexpr int requestFIN = 4;
 };
 
 void Server::go_back_N_ARQ()
@@ -165,29 +164,9 @@ void Server::go_back_N_ARQ()
                 std::memcpy(&ackPkt, m_UDPsocket.GetRecvBuf(), sizeof(ackPkt));
                 if (ackPkt.seq == 0 && ackPkt.type == PKT_TYPE::SYN_ACK) {
                     lastTime = std::chrono::steady_clock::now(); // 성공적인 ACK 수신 시 타이머 리셋
-                    state = STATE_TYPE::recvAckPkt;
-                }
-            }
-        }
-        break;
 
-        case STATE_TYPE::recvAckPkt: {
-            recvResult = m_UDPsocket.RecvFrom();
-            if (recvResult < 0) {
-                // 시간이 지났는지 체크
-                auto now = std::chrono::steady_clock::now();
-                if (now - lastTime > timeout_ms) {
-                    std::cout << "ACK - Time Out...\n";
-                    lastTime = now; // 타임아웃 이후 시간을 갱신
-                    state = STATE_TYPE::handShake; // 핸드셰이크 재시도 
-                }
-            }
-            else {
-                std::memcpy(&ackPkt, m_UDPsocket.GetRecvBuf(), sizeof(ackPkt));
-                if (ackPkt.seq == 0 && ackPkt.type == PKT_TYPE::ACK) {
-                    lastTime = std::chrono::steady_clock::now(); // 성공적인 ACK 수신 시 타이머 리셋
-                    curSeq = 1;
-                    curAck = 1;
+                    ackPkt = Create_ACK_pkt(0);
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
                     state = STATE_TYPE::sendData;
                 }
             }
