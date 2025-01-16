@@ -13,7 +13,8 @@ constexpr u_short SERVER_PORT = 7777;
 #define WIFI_MODE
 #ifdef WIFI_MODE
 const std::string SERVER_IP = "172.30.1.53";
-const std::string CLIENT_IP = "172.30.1.97";
+const std::string CLIENT_IP = "172.30.1.53";
+const std::string CLIENT2_IP = "172.30.1.97";
 
 #else
 

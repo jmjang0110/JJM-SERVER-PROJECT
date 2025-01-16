@@ -12,7 +12,7 @@ bool Client::Init()
 		throw std::exception("Failed WSAStartup.");
 	}
 
-	m_UDPsocket.Bind(CLIENT_PORT, SERVER_IP);
+	m_UDPsocket.Bind(CLIENT_PORT, CLIENT2_IP);
 	std::cout << "------------- UDP SOCKET IP, Port -------------\n";
 	m_UDPsocket.PrintIPansPort();
 	std::cout << "-----------------------------------------------\n";
@@ -376,10 +376,10 @@ void Client::UDP_HolePunching()
 
 			auto now = std::chrono::steady_clock::now();
 			static auto lastSendTime = std::chrono::steady_clock::now();  // Keeps track of last send time
-			std::chrono::milliseconds interval(3000);  // 3 seconds
+			std::chrono::milliseconds interval(1000);  // 3 seconds
 
 			if (now - lastSendTime >= interval) {
-				char str[20] = "Hello I'm P1";
+				char str[20] = "Hello I'm P2";
 				P2PDataPacket data_pkt = CreateP2Pdata_Pkt(str);
 				m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&data_pkt), sizeof(data_pkt), remote_endpoint);
 
