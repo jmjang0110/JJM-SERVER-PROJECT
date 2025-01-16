@@ -21,6 +21,8 @@ private:
 private:
 	void wait_ans_stop();
 	void go_back_N_ARQ();
+	void UDP_HolePunching();
+
 
 };
 

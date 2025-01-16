@@ -28,10 +28,10 @@ void Client::Exit()
 
 void Client::Execute()
 {
-    wait_and_stop();
+    //wait_and_stop();
 
 
-    //go_back_N_ARQ();
+    go_back_N_ARQ();
 
 
 }
@@ -132,10 +132,13 @@ void Client::go_back_N_ARQ()
     int seq = 0;
     int wait_seq = 0;
     int synFlag = 0;
+    int ackFlag = 0;
     int finFlag = 0;
     int wait_time = 0;
 
     bool loopflag = 1;
+
+    bool Established = false;
 
     // Start measuring time
     auto start_time = std::chrono::steady_clock::now();
@@ -164,8 +167,6 @@ void Client::go_back_N_ARQ()
                 std::string peer_ip_port = m_UDPsocket.GetPeerIPandPort(peerInfo);
                 std::cout << "Connection Request Received From " << peer_ip_port << "\n";
                 ackPkt = Create_SYN_ACK_pkt(seq);
-                seq = dataPkt.seq;
-                wait_seq = seq + 1;
 
                 std::cout << "Send ACK with SEQ : " << seq << " Expecting SEQ : " << wait_seq << "\n";
                 m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
@@ -176,17 +177,14 @@ void Client::go_back_N_ARQ()
 
                 std::string peer_ip_port = m_UDPsocket.GetPeerIPandPort(peerInfo);
                 std::cout << "Connection Request Received From " << peer_ip_port << "\n";
-                ackPkt = Create_ACK_pkt(seq);
                 seq = dataPkt.seq;
                 wait_seq = seq + 1;
-
-                std::cout << "Send ACK with SEQ : " << seq << " Expecting SEQ : " << wait_seq << "\n";
-                m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
-                synFlag = 1;
+                ackFlag = 1;
+                Established = true;
             }
 
             /************* DATA ************/
-            else if (dataPkt.type == PKT_TYPE::DATA && dataPkt.seq > 0 && synFlag == 1) {
+            else if (dataPkt.type == PKT_TYPE::DATA && dataPkt.seq > 0 && Established) {
 
                 if (dataPkt.seq == wait_seq) {
                     wait_seq++;

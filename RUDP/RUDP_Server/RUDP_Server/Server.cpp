@@ -266,3 +266,9 @@ void Server::go_back_N_ARQ()
 
     std::cout << "Go-Back-N-ARQ exit successfully\n";
 }
+
+void Server::UDP_HolePunching()
+{
+
+
+}

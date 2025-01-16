@@ -34,6 +34,12 @@ struct ackPacket {
     int seq;     // ACK의 시퀀스 번호
 };
 
+struct UDPholePunchingPacket {
+    char type;
+    int seq;
+
+};
+
 dataPacket Create_SYN_pkt(int seq_no);
 dataPacket Create_DATA_pkt(int seq_no, long data);
 dataPacket Create_FIN_pkt(int seq_no);
