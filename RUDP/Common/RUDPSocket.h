@@ -20,6 +20,8 @@ private:
 	std::mutex m_SendPktMutex;
 	std::queue<UDPpacket> Q;
 
+	struct sockaddr_in m_recent_peer;
+
 public:
 	RUDPSocket();
 	virtual ~RUDPSocket();
@@ -33,6 +35,6 @@ public:
 
 	std::byte* GetRecvBuf() { return m_RecvBuffer; }
 	sockaddr_in Peer(const std::string& peer_ip, const u_short& peer_port);
-
+	sockaddr_in GetRecentPeer() { return m_recent_peer; }
 };
 

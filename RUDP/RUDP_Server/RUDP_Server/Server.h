@@ -9,6 +9,8 @@ private:
 
 	RUDPSocket	m_peerSocket;
 
+	class Room*  m_sessionRoom;
+
 public:
 	bool Init();
 	void Exit();
@@ -22,7 +24,6 @@ private:
 	void wait_ans_stop();
 	void go_back_N_ARQ();
 	void UDP_HolePunching();
-
 
 };
 

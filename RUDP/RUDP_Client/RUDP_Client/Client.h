@@ -20,6 +20,7 @@ private:
 private:
 	void wait_and_stop();
 	void go_back_N_ARQ();
+	void UDP_HolePunching();
 
 };
 

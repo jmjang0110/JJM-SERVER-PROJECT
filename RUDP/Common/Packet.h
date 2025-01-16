@@ -1,5 +1,9 @@
 #pragma once
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "Ws2_32.lib") // Winsock 라이브러리 링크
+
 /*
 Define packet bit structure and type
 
@@ -20,6 +24,8 @@ namespace PKT_TYPE {
     constexpr char ACK     = '4';
     constexpr char ACK_FIN = '5';
     constexpr char SYN_ACK = '6';
+
+    constexpr char HOLE_PUNCING = '7';
 };
 
 
@@ -34,10 +40,14 @@ struct ackPacket {
     int seq;     // ACK의 시퀀스 번호
 };
 
-struct UDPholePunchingPacket {
+struct PacketHeader {
     char type;
     int seq;
+};
 
+struct UDPholePunchingPacket : public PacketHeader{
+    sockaddr_in peer_end_point;
+    char get_peer_success_Ack;
 };
 
 dataPacket Create_SYN_pkt(int seq_no);

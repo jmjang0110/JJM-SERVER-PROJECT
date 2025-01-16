@@ -14,9 +14,6 @@ dataPacket Create_SYN_pkt(int seq_no) {
     return pkt;
 }
 
-
-
-
 dataPacket Create_DATA_pkt(int seq_no, long data) {
     dataPacket pkt;
 

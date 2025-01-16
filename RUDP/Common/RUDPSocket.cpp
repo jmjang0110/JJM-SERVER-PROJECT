@@ -70,8 +70,7 @@ int RUDPSocket::RecvFrom()
         throw std::exception(errorMsg.c_str());
     }
 
-    auto ip_port = GetPeerIPandPort(from);
-    std::cout << "[public ip,port]Received packet from: " << ip_port.c_str() << std::endl;
+    m_recent_peer = from;
 
     return result;  // 수신한 데이터 크기 반환
 }

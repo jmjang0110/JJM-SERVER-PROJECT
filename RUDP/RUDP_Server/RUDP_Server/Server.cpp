@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Server.h"
 #include "Common/Packet.h"
+#include "Room.h"
 
-#include <map>
 
 bool Server::Init()
 {
@@ -16,6 +16,7 @@ bool Server::Init()
     m_UDPsocket.PrintIPansPort();
     std::cout << "-----------------------------------------------\n";
 
+    m_sessionRoom = new Room;
 
     return true;
 }
@@ -24,13 +25,19 @@ void Server::Exit()
 {
     m_UDPsocket.Close();
     ::WSACleanup();
+    
+    if(m_sessionRoom)
+        delete m_sessionRoom;
 }
 
 void Server::Execute()
 {
     //wait_ans_stop();
 
-    go_back_N_ARQ();
+    //go_back_N_ARQ();
+
+
+    UDP_HolePunching();
 
 }
 
@@ -100,12 +107,6 @@ void Server::wait_ans_stop()
 }
 
 
-namespace STATE_TYPE {
-    constexpr int handShake  = 1;
-    constexpr int recvSynpkt = 2;
-    constexpr int sendData   = 3;
-    constexpr int requestFIN = 4;
-};
 
 void Server::go_back_N_ARQ()
 {
@@ -248,6 +249,88 @@ void Server::go_back_N_ARQ()
 
 void Server::UDP_HolePunching()
 {
+    if (!m_UDPsocket.NonBlockMode()) {
+        std::cout << "UDP Socket Nonbock Mode Failed \n";
+        return;
+    }
 
+    PacketHeader header;
+    ackPacket ackPkt;
 
+    int status{};
+    int seq = 0;
+    int wait_seq = 0;
+    int synFlag = 0;
+    int ackFlag = 0;
+    int finFlag = 0;
+    int wait_time = 0;
+
+    bool loopflag = 1;
+    while (loopflag) {
+
+        /************* Á¾·á ************/
+        if (finFlag == 1) {
+            wait_time++;
+            if (wait_time > 1000) {
+                std::cout << "Closed ! time Up \n";
+                loopflag = 0;
+            }
+        }
+
+        status = m_UDPsocket.RecvFrom();
+        if (status < 0) {
+
+        }
+        else {
+            std::memcpy(&header, m_UDPsocket.GetRecvBuf(), sizeof(header));
+
+            /************* SYN ************/
+            if (header.type == PKT_TYPE::SYN && header.seq == 0) {
+
+                ackPkt = Create_SYN_ACK_pkt(seq);
+                auto peer = m_UDPsocket.GetRecentPeer();
+                m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                synFlag = 1;
+            }
+
+            else if (header.type == PKT_TYPE::ACK && header.seq == 0) {
+                seq = header.seq;
+                wait_seq = seq + 1;
+                ackFlag = 1;
+
+                sockaddr_in end_point = m_UDPsocket.GetRecentPeer();
+                m_sessionRoom->Enter(end_point);
+
+                auto peer_info = m_UDPsocket.GetPeerIPandPort(end_point);
+                std::cout << "ESTABLISHED : " << peer_info << "\n";
+            }
+
+            /************* DATA ************/
+            else if (header.type == PKT_TYPE::HOLE_PUNCING && header.seq == 0) {
+                auto peer = m_UDPsocket.GetRecentPeer();
+
+               
+
+            }
+
+            /************* FIN ************/
+            else if (header.type == PKT_TYPE::FIN && synFlag == 1) {
+                ackPkt = Create_FIN_ACK_pkt(header.seq);
+                auto peer = m_UDPsocket.GetRecentPeer();
+
+                if (finFlag == 0) {
+                    std::cout << "Sender is terminating with FIN...\n ";
+                    std::cout << "Send ACK with seq : " << header.seq << "\n";
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                }
+                else if (finFlag == 1) {
+                    std::cout << "Sender is terminating with FIN... \n";
+                    std::cout << "sending ACK with SEQ : " << header.seq << "\n";
+                    m_UDPsocket.SendTo(reinterpret_cast<std::byte*>(&ackPkt), sizeof(ackPkt), peer);
+                }
+
+                finFlag = 1;
+            }
+        }
+    }
 }
