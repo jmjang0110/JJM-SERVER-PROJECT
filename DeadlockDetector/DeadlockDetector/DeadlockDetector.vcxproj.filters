@@ -19,11 +19,17 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DeadlockDetector.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LockTest.cpp">
+      <Filter>헤더 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeadlockDetector.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LockTest.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -296,6 +296,7 @@ void Server::UDP_HolePunching()
             }
 
             else if (header.type == PKT_TYPE::ACK && header.seq == 0) {
+                static int player_num = 1;
                 seq = header.seq;
                 wait_seq = seq + 1;
                 ackFlag = 1;
@@ -304,7 +305,8 @@ void Server::UDP_HolePunching()
                 m_sessionRoom->Enter(end_point);
 
                 auto peer_info = m_UDPsocket.GetPeerIPandPort(end_point);
-                std::cout << "ESTABLISHED : " << peer_info << "\n";
+                std::cout << "ESTABLISHED : " << peer_info << " : Player " << player_num << "\n";
+                player_num++;
             }
 
             /************* HOLE_PUNCING ************/
