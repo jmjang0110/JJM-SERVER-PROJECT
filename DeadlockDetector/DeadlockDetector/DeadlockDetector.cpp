@@ -8,67 +8,73 @@ void DeadlockDetector::CheckDeadLock()
 {
 	const int lock_cnt = m_LockTable.size();
 
-	m_visitOrder    = std::vector<int>(lock_cnt, -1);
-	m_parents       = std::vector<int>(lock_cnt, -1);
-	m_finished      = std::vector<bool>(lock_cnt, false);
-	m_visitOrderCnt = 0;
+	m_detector.visitOrder    = std::vector<int>(lock_cnt, -1);
+	m_detector.parents       = std::vector<int>(lock_cnt, -1);
+	m_detector.finished      = std::vector<bool>(lock_cnt, false);
+	m_detector.visitOrderCnt = 0;
 
 	for (int i = 0; i < lock_cnt; ++i) {
 		DFS(i);
 	}
 
 
-	m_visitOrder.clear();
-	m_parents.clear();
-	m_finished.clear();
+	m_detector.visitOrder.clear();
+	m_detector.parents.clear();
+	m_detector.finished.clear();
 
 }
 
 void DeadlockDetector::DFS(int from)
 {
-	if (m_visitOrder[from] != -1)
+	if (m_detector.visitOrder[from] != -1)
 		return;
 
-	m_visitOrder[from] = m_visitOrderCnt++;
+	m_detector.visitOrder[from] = m_detector.visitOrderCnt++;
 	auto iter = m_LockEdgeList.find(from);
 	if (iter == m_LockEdgeList.end()) { // from노드에 연결된 간선이 없음 
-		m_finished[from] = false;
+		m_detector.finished[from] = false;
 		return;
 	}
 
 	// from -> to,to,to...
 	auto& ToList = iter->second;
 	for (int to : ToList) {
-		if (m_visitOrder[to] == -1) {
-			m_parents[to] = from; // 방문할 노드의 부모는 이번 노드
+		if (m_detector.visitOrder[to] == -1) {
+			m_detector.parents[to] = from; // 방문할 노드의 부모는 이번 노드
 			DFS(to);
 			continue;
 		}
 
 		// 순방향
-		if (m_visitOrder[from] < m_visitOrder[to]) {
+		if (m_detector.visitOrder[from] < m_detector.visitOrder[to]) {
 			continue;
 		}
 
 		// DFS 중 완료되지 않은 상태의 노드를 다시 방문하면 사이클 발생한 것 Dead lock!
-		if (m_finished[to] == false) {
+		if (m_detector.finished[to] == false) { // m_finished 가 false 이면 아직 DFS 탐색이 완료되지 않은 상태임 그래서 재방문한거임 -> 순환 ( 역방향 )
 			
 			std::cout << "DEAD LOCK!\n";
 			std::cout << m_LockTableRev[from].c_str() << " -> " << m_LockTableRev[to].c_str();
 
-			int curr = from;
-			while(true){
-				int parent = m_parents[curr];
-				curr = parent;
-				if (curr == to)
-					break;
-			}
+			CheckCycleRoute(from, to);
 
 			assert(false, "DEAD LOCK");
 		}
 	}
 
-	m_finished[from] = true;
+	m_detector.finished[from] = true;
+}
+
+bool DeadlockDetector::CheckCycleRoute(int from, int to)
+{
+	int curr = from;
+	while (true) {
+		int parent = m_detector.parents[curr];
+		curr = parent;
+		if (curr == to)
+			return true;
+	}
+	return false;
 }
 
 void DeadlockDetector::Push(const std::string& lock_name)
